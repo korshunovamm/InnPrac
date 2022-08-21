@@ -6,7 +6,8 @@ from pefile import b
 
 class Player(object):
     _dynamic = {
-        
+        "promotion": 0,
+
     }
     _money: int = 120
     _nickname: str = ""
