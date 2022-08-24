@@ -1,13 +1,19 @@
+import pickle
+
 from game.game import Game
-from game.player import Player
 
 game = Game()
 
 
-def GetGame():
-    return game
-
 
 pl = game.NewLab("Игрок", "Пароль")
-pl.CalcOrdersCount(4)
-print(pl.GetOrders())
+ro = pl.buyRoom()
+
+game.BuyEquipment(pl.GetUuid(), ro.GetUuid(), "semi-manual", "yellow")
+
+print(ro.GetEquipment())
+print(game._equipments)
+# pickle.dump(game, open("game.pkl", "wb"))
+#
+# game2 = pickle.load(open("game.pkl", "rb"))
+# print(game2)

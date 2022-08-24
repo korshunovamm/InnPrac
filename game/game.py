@@ -1,5 +1,9 @@
 """Модуль содердит класс @Game"""
+import json
+
 from game.player import Player
+
+gameObject = None
 
 
 def ReadFile(path: str):
@@ -11,47 +15,100 @@ def ReadFile(path: str):
     ret = f.read()
     f.close()
     return ret
-
+ 
 
 class Game(object):
     """Класс @Game является коренным классом каждой игры."""
     _day = 1
     _stage = 1
-    _labs = []
+    _labs = {}
     _events = 0
-    _rooms = 10
+    _rooms = 60
     _services = 0
-    _equipments = 0
+    _equipments = {
+        "hand": {
+            "yellow": 6,
+            "red": 6,
+            "blue": 6,
+            "green": 6,
+            "purple": 6,
+            "grey": 6
+        },
+        "semi-manual": {
+            "yellow": 6,
+            "red": 6,
+            "blue": 6,
+            "green": 6,
+            "purple": 6,
+            "grey": 6
+        },
+        "auto": {
+            "yellow": 6,
+            "red": 6,
+            "blue": 6,
+            "green": 6,
+            "purple": 6,
+            "grey": 6
+        },
+        "pre_analytic": 12,
+        "reporting": 12
+    }
     _persons = 0
 
+    # конструктор игры
     def __init__(self):
-        print(str(object))
-        self._events = ReadFile('data/events.json')
-        self._services = ReadFile('data/services.json')
-        self._equipments = ReadFile('data/equipments.json')
+        pass
 
+    # создание новой лаборатории
     def NewLab(self, nickname, password):
         pl = Player(nickname, password)
-        self._labs.append(pl)
-        return pl.GetUuid()
+        self._labs[pl.GetUuid()] = pl
+        return pl
 
-    def newStage(self):
-        if self._stage == 1:
-            self._stage = 2
-            for x in self._labs:
-                OrderLevel = None
-                rep = x.FirstStep(self._events)["Reputation"]
-                if rep < 10:
-                    OrderLevel = 0
-                elif rep < 20:
-                    OrderLevel = 1
-                elif rep < 30:
-                    OrderLevel = 2
-                elif rep < 40:
-                    OrderLevel = 3
-                else:
-                    OrderLevel = 4
-                x.CalcOrdersCount(OrderLevel)
+    # def newStage(self):
+    #     if self._stage == 1:
+    #         self._stage = 2
+    #         for x in self._labs:
+    #             rep = x.FirstStep(self._events)["Reputation"]
+    #             if rep < 10:
+    #                 orderLevel = 0
+    #             elif rep < 20:
+    #                 orderLevel = 1
+    #             elif rep < 30:
+    #                 orderLevel = 2
+    #             elif rep < 40:
+    #                 orderLevel = 3
+    #             else:
+    #                 orderLevel = 4
+    #             x.CalcOrdersCount(orderLevel)
+    #     else:
+    #         self._day += 1
+    #         self._stage = 1
+    pass
+
+    # купить комнату
+    def BuyRoom(self, labUuid):
+        if self._rooms > 0 and self._stage == 1:
+            self._rooms -= 1
+            self._labs[labUuid].BuyRoom()
+            return True
         else:
-            self._day += 1
-            self._stage = 1
+            return False
+
+    # купить оборудование
+    def BuyEquipment(self, labUuid, roomUuid, equipmentType, equipmentColor):
+        lab = self._labs[labUuid]
+        room = lab.GetRoom(roomUuid)
+        equipmentInfo = json.loads(ReadFile('data/equipments.json'))[equipmentType]
+        if equipmentType != "reporting" and equipmentType != "pre_analytic":
+            amount = self._equipments[equipmentType][equipmentColor]
+        else:
+            amount = self._equipments[equipmentType]
+        if amount > 0 and self._stage == 1 and lab.GetMoney() >= equipmentInfo["price"]:
+            if equipmentType != "reporting" and equipmentType != "pre_analytic":
+                self._equipments[equipmentType][equipmentColor] -= 1
+            else:
+                self._equipments[equipmentType] -= 1
+            room.SetEquipment(equipmentType, equipmentColor)
+        else:
+            return False

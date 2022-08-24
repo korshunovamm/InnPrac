@@ -1,0 +1,42 @@
+{
+  "hand": {
+    "type": "hand",
+    "price": 6,
+    "costs": 1,
+    "reputation": 1,
+    "repair": 1,
+    "reagent": 2
+  },
+  "semi-manual": {
+    "type": "semi-manual",
+    "price": 30,
+    "costs": 2,
+    "reputation": 2,
+    "repair": 10,
+    "reagent": 4
+  },
+  "auto": {
+    "type": "auto",
+    "price": 60,
+    "costs": 3,
+    "reputation": 3,
+    "repair": 15,
+    "reagent": 5
+  },
+  "preanalytic": {
+    "type": "preanalytic",
+    "price": 6,
+    "costs": 1,
+    "reputation": 1,
+    "repair": 2,
+    "reagent": 1
+  },
+  "reporting": {
+    "type": "reporting",
+    "price": 10,
+    "costs": 1,
+    "reputation": 2,
+    "repair": 4,
+    "reagent": 2
+  }
+}
