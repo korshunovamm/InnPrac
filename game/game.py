@@ -15,7 +15,7 @@ def ReadFile(path: str):
     ret = f.read()
     f.close()
     return ret
- 
+
 
 class Game(object):
     """Класс @Game является коренным классом каждой игры."""
@@ -65,25 +65,29 @@ class Game(object):
         self._labs[pl.GetUuid()] = pl
         return pl
 
-    # def newStage(self):
-    #     if self._stage == 1:
-    #         self._stage = 2
-    #         for x in self._labs:
-    #             rep = x.FirstStep(self._events)["Reputation"]
-    #             if rep < 10:
-    #                 orderLevel = 0
-    #             elif rep < 20:
-    #                 orderLevel = 1
-    #             elif rep < 30:
-    #                 orderLevel = 2
-    #             elif rep < 40:
-    #                 orderLevel = 3
-    #             else:
-    #                 orderLevel = 4
-    #             x.CalcOrdersCount(orderLevel)
-    #     else:
-    #         self._day += 1
-    #         self._stage = 1
+    def newStage(self):
+        for lab in self._labs:
+            lab.IsReady()
+
+        if self._stage == 1:
+            self._stage = 2
+            for x in self._labs:
+                rep = x.FirstStep(self._events)["Reputation"]
+                if rep < 10:
+                    orderLevel = 0
+                elif rep < 20:
+                    orderLevel = 1
+                elif rep < 30:
+                    orderLevel = 2
+                elif rep < 40:
+                    orderLevel = 3
+                else:
+                    orderLevel = 4
+                x.CalcOrdersCount(orderLevel)
+        else:
+            self._day += 1
+            self._stage = 1
+
     pass
 
     # купить комнату
