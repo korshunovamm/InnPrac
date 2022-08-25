@@ -53,7 +53,10 @@ class Game(object):
         "pre_analytic": 12,
         "reporting": 12
     }
-    _persons = 0
+    _persons = {
+        "doctor": 120,
+        "labAssistant": 120
+    }
 
     # конструктор игры
     def __init__(self):
@@ -94,7 +97,7 @@ class Game(object):
                 self._stage = 1
                 for x in self._labs:
                     x.NewDay()
-                    rep = x.FirstStep(self._events)["Reputation"]
+                    rep = x.CalcReputation()
                     if rep < 10:
                         orderLevel = 0
                     elif rep < 20:
@@ -130,6 +133,19 @@ class Game(object):
                 self._equipments[equipmentType][equipmentColor] -= 1
             else:
                 self._equipments[equipmentType] -= 1
+            lab.Buy(equipmentInfo["price"])
             room.SetEquipment(equipmentType, equipmentColor)
+        else:
+            return False
+
+    # купить персонал
+    def BuyPerson(self, labUuid, roomUuid, personType):
+        lab = self._labs[labUuid]
+        room = lab.GetRoom(roomUuid)
+        personInfo = json.loads(ReadFile('data/persons.json'))[personType]
+        amount = self._persons[personType]
+        if amount > 0 and self._stage == 1 and lab.GetMoney() >= personInfo["price"] and room.GetPersonCount()[
+            personType] < room.GetPersonsLimit()[personType]:
+            room.BuyPerson(personType)
         else:
             return False
