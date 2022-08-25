@@ -65,30 +65,47 @@ class Game(object):
         self._labs[pl.GetUuid()] = pl
         return pl
 
+    # получение лабораторий
+    def GetLabs(self):
+        return self._labs
+
     def newStage(self):
+        sum = 0
         for lab in self._labs:
-            lab.IsReady()
-
-        if self._stage == 1:
-            self._stage = 2
-            for x in self._labs:
-                rep = x.FirstStep(self._events)["Reputation"]
-                if rep < 10:
-                    orderLevel = 0
-                elif rep < 20:
-                    orderLevel = 1
-                elif rep < 30:
-                    orderLevel = 2
-                elif rep < 40:
-                    orderLevel = 3
-                else:
-                    orderLevel = 4
-                x.CalcOrdersCount(orderLevel)
-        else:
-            self._day += 1
-            self._stage = 1
-
-    pass
+            sum += lab.IsReady()
+        if sum == len(self._labs):
+            if self._stage == 1:
+                self._stage = 2
+                for x in self._labs:
+                    rep = x.CalcReputation()
+                    if rep < 10:
+                        orderLevel = 0
+                    elif rep < 20:
+                        orderLevel = 1
+                    elif rep < 30:
+                        orderLevel = 2
+                    elif rep < 40:
+                        orderLevel = 3
+                    else:
+                        orderLevel = 4
+                    x.CalcOrdersCount(orderLevel)
+            else:
+                self._day += 1
+                self._stage = 1
+                for x in self._labs:
+                    x.NewDay()
+                    rep = x.FirstStep(self._events)["Reputation"]
+                    if rep < 10:
+                        orderLevel = 0
+                    elif rep < 20:
+                        orderLevel = 1
+                    elif rep < 30:
+                        orderLevel = 2
+                    elif rep < 40:
+                        orderLevel = 3
+                    else:
+                        orderLevel = 4
+                    x.CalcOrdersCount(orderLevel)
 
     # купить комнату
     def BuyRoom(self, labUuid):
