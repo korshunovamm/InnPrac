@@ -6,6 +6,30 @@ from game.player import Player
 gameObject = None
 
 
+def NewGame():
+    """Функция создает новую игру.
+    @returntype:Game
+    """
+    global gameObject
+    gameObject = Game()
+    return gameObject
+
+
+def GetGame():
+    """Функция возвращает игру.
+    @returntype:Game
+    """
+    return gameObject
+
+
+def GetLab(labUuid: str) -> dict:
+    """Функция возвращает лабораторию по его uuid.
+    @param labUuid:str - uuid лабиринта.
+    @returntype:dict
+    """
+    return gameObject.GetLab(labUuid)
+
+
 def ReadFile(path: str):
     """Функция возвращает содержимое файла.
     @returntype:string
@@ -19,13 +43,13 @@ def ReadFile(path: str):
 
 class Game(object):
     """Класс @Game является коренным классом каждой игры."""
-    _day = 1
-    _stage = 1
-    _labs = {}
-    _events = 0
-    _rooms = 60
+    _day: int = 1
+    _stage: int = 1
+    _labs: Player = {}
+    _events: int = 0
+    _rooms: int = 60
     _services = 0
-    _equipments = {
+    _equipments: object = {
         "hand": {
             "yellow": 6,
             "red": 6,
@@ -53,7 +77,7 @@ class Game(object):
         "pre_analytic": 12,
         "reporting": 12
     }
-    _persons = {
+    _persons: object = {
         "doctor": 120,
         "labAssistant": 120
     }
@@ -69,83 +93,84 @@ class Game(object):
         return pl
 
     # получение лабораторий
-    def GetLabs(self):
-        return self._labs
+    def GetLab(self, labUuid):
+        return self._labs[labUuid]
 
-    def newStage(self):
-        sum = 0
-        for lab in self._labs:
-            sum += lab.IsReady()
-        if sum == len(self._labs):
-            if self._stage == 1:
-                self._stage = 2
-                for x in self._labs:
-                    rep = x.CalcReputation()
-                    if rep < 10:
-                        orderLevel = 0
-                    elif rep < 20:
-                        orderLevel = 1
-                    elif rep < 30:
-                        orderLevel = 2
-                    elif rep < 40:
-                        orderLevel = 3
-                    else:
-                        orderLevel = 4
-                    x.CalcOrdersCount(orderLevel)
-            else:
-                self._day += 1
-                self._stage = 1
-                for x in self._labs:
-                    x.NewDay()
-                    rep = x.CalcReputation()
-                    if rep < 10:
-                        orderLevel = 0
-                    elif rep < 20:
-                        orderLevel = 1
-                    elif rep < 30:
-                        orderLevel = 2
-                    elif rep < 40:
-                        orderLevel = 3
-                    else:
-                        orderLevel = 4
-                    x.CalcOrdersCount(orderLevel)
+    # def newStage(self):
+    #     sum = 0
+    #     for lab in self._labs:
+    #         sum += lab.IsReady()
+    #     if sum == len(self._labs):
+    #         if self._stage == 1:
+    #             self._stage = 2
+    #             for x in self._labs:
+    #                 rep = x.CalcReputation()
+    #                 if rep < 10:
+    #                     orderLevel = 0
+    #                 elif rep < 20:
+    #                     orderLevel = 1
+    #                 elif rep < 30:
+    #                     orderLevel = 2
+    #                 elif rep < 40:
+    #                     orderLevel = 3
+    #                 else:
+    #                     orderLevel = 4
+    #                 x.CalcOrdersCount(orderLevel)
+    #         else:
+    #             self._day += 1
+    #             self._stage = 1
+    #             for x in self._labs:
+    #                 x.NewDay()
+    #                 rep = self._labs[x].CalcReputation()
+    #                 if rep < 10:
+    #                     orderLevel = 0
+    #                 elif rep < 20:
+    #                     orderLevel = 1
+    #                 elif rep < 30:
+    #                     orderLevel = 2
+    #                 elif rep < 40:
+    #                     orderLevel = 3
+    #                 else:
+    #                     orderLevel = 4
+    #                 x.CalcOrdersCount(orderLevel)
+    pass
 
     # купить комнату
     def BuyRoom(self, labUuid):
-        if self._rooms > 0 and self._stage == 1:
+        if self._rooms > 0 and self._stage == 1 and self._labs[labUuid].CanBuyRoom():
             self._rooms -= 1
-            self._labs[labUuid].BuyRoom()
-            return True
+            return self._labs[labUuid].BuyRoom()
         else:
             return False
 
     # купить оборудование
     def BuyEquipment(self, labUuid, roomUuid, equipmentType, equipmentColor):
-        lab = self._labs[labUuid]
-        room = lab.GetRoom(roomUuid)
+        lab: Player = self._labs[labUuid]
         equipmentInfo = json.loads(ReadFile('data/equipments.json'))[equipmentType]
+        amount = self._equipments[equipmentType]
         if equipmentType != "reporting" and equipmentType != "pre_analytic":
-            amount = self._equipments[equipmentType][equipmentColor]
-        else:
-            amount = self._equipments[equipmentType]
-        if amount > 0 and self._stage == 1 and lab.GetMoney() >= equipmentInfo["price"]:
+            amount = amount[equipmentColor]
+
+        if amount > 0 and self._stage == 1 and lab.CanBuyEquipment(roomUuid, equipmentInfo):
             if equipmentType != "reporting" and equipmentType != "pre_analytic":
                 self._equipments[equipmentType][equipmentColor] -= 1
             else:
                 self._equipments[equipmentType] -= 1
             lab.Buy(equipmentInfo["price"])
-            room.SetEquipment(equipmentType, equipmentColor)
+
+            eq = lab.BuyEquipment(roomUuid, equipmentType, equipmentColor)
+            return eq
         else:
             return False
 
     # купить персонал
     def BuyPerson(self, labUuid, roomUuid, personType):
         lab = self._labs[labUuid]
-        room = lab.GetRoom(roomUuid)
+        room = lab.GetRooms()[roomUuid]
         personInfo = json.loads(ReadFile('data/persons.json'))[personType]
-        amount = self._persons[personType]
-        if amount > 0 and self._stage == 1 and lab.GetMoney() >= personInfo["price"] and room.GetPersonCount()[
-            personType] < room.GetPersonsLimit()[personType]:
+        if self._persons[personType] > 0 and self._stage == 1 and lab.GetMoney() >= personInfo["price"] and \
+                room.GetPersonCount()[
+                    personType] < room.GetPersonsLimit()[personType]:
             room.BuyPerson(personType)
         else:
             return False

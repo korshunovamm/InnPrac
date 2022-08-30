@@ -1,37 +1,77 @@
 {
   "hand": {
     "price": 6,
-    "costs": 1,
+    "expenses": 1,
     "reputation": 1,
     "repair": 1,
-    "reagent": 2
+    "reagentPrice": 2,
+    "minPersons": {
+      "doctor": 1,
+      "labAssistant": 3
+    },
+    "maxPersons": {
+      "doctor": 1,
+      "labAssistant": 3
+    }
   },
   "semi-manual": {
     "price": 30,
-    "costs": 2,
+    "expenses": 2,
     "reputation": 2,
     "repair": 10,
-    "reagent": 4
+    "reagentPrice": 4,
+    "minPersons": {
+      "doctor": 2,
+      "labAssistant": 2
+    },
+    "maxPersons": {
+      "doctor": 2,
+      "labAssistant": 2
+    }
   },
   "auto": {
     "price": 60,
-    "costs": 3,
+    "expenses": 3,
     "reputation": 3,
     "repair": 15,
-    "reagent": 5
+    "reagentPrice": 5,
+    "minPersons": {
+      "doctor": 1,
+      "labAssistant": 3
+    },
+    "maxPersons": {
+      "doctor": 1,
+      "labAssistant": 3
+    }
   },
   "preanalytic": {
     "price": 6,
-    "costs": 1,
+    "expenses": 1,
     "reputation": 1,
     "repair": 2,
-    "reagent": 1
+    "reagentPrice": 1,
+    "minPersons": {
+      "doctor": 0,
+      "labAssistant": 1
+    },
+    "maxPersons": {
+      "doctor": 0,
+      "labAssistant": 3
+    }
   },
   "reporting": {
     "price": 10,
-    "costs": 1,
+    "expenses": 1,
     "reputation": 2,
     "repair": 4,
-    "reagent": 2
+    "reagentPrice": 2,
+    "minPersons": {
+      "doctor": 0,
+      "labAssistant": 1
+    },
+    "maxPersons": {
+      "doctor": 0,
+      "labAssistant": 3
+    }
   }
 }

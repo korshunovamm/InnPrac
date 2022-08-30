@@ -1,20 +1,19 @@
-from game.game import Game
+from game.game import NewGame, GetGame, Game
 
-game = Game()
-user = game.NewLab("test", "test")
-# orders = user.CalcOrdersCount(4)
-
+NewGame()
+game: Game = GetGame()
 #
 pl = game.NewLab("Игрок", "Пароль")
-roo = pl.BuyRoom()
-game.BuyEquipment(pl.GetUuid(), roo.GetUuid(), "hand", "yellow")
-game.BuyPerson(pl.GetUuid(), roo.GetUuid(), "doctor")
-game.BuyPerson(pl.GetUuid(), roo.GetUuid(), "labAssistant")
-print(pl.CalcReputation())
-# game.BuyEquipment(pl.GetUuid(), ro.GetUuid(), "semi-manual", "yellow")
+ro = game.BuyRoom(pl.GetUuid())
+
+eq = game.BuyEquipment(pl.GetUuid(), ro.GetUuid(), "hand", "yellow")
+game.BuyPerson(pl.GetUuid(), ro.GetUuid(), "doctor")
+game.BuyPerson(pl.GetUuid(), ro.GetUuid(), "doctor")
+game.BuyPerson(pl.GetUuid(), ro.GetUuid(), "labAssistant")
+game.BuyPerson(pl.GetUuid(), ro.GetUuid(), "labAssistant")
+print("У этого чела репутация:" + str(pl.CalcReputation()))
+print("У этого чела расходы:" + str(pl.CalcExpenses()))
 #
-# print(ro.GetEquipment())
-# print(game._equipments)
 # pickle.dump(game, open("game.pkl", "wb"))
 #
 # game2 = pickle.load(open("game.pkl", "rb"))
