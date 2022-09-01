@@ -45,7 +45,7 @@ class Game(object):
     """Класс @Game является коренным классом каждой игры."""
     _day: int = 1
     _stage: int = 1
-    _labs: Player = {}
+    _labs = {}
     _events: int = 0
     _rooms: int = 60
     _services = 0
