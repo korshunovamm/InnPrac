@@ -3,7 +3,7 @@
     "price": 6,
     "expenses": 1,
     "reputation": 1,
-    "repair": 1,
+    "repair": 5,
     "reagentPrice": 2,
     "minPersons": {
       "doctor": 1,
