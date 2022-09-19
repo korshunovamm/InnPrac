@@ -42,13 +42,13 @@ class event:  # Event class
 
     @staticmethod
     def action2(game: Game):
-        for x in game._labs:
+        for x in game.labs:
             from game.player import Player
-            lab: Player = game._labs[x]
+            lab: Player = game.labs[x]
             for x in lab.GetOrdersInput():
                 if (lab.GetOrdersInput()[x]):
                     order = Order(x, lab.GetUuid())
-                    lab._orders[order.GetUuid()] = order
+                    lab.orders[order.GetUuid()] = order
 
     @staticmethod
     def action3(pl: Player):
@@ -56,11 +56,11 @@ class event:  # Event class
 
     @staticmethod
     def action4(game: Game):
-        for x in game._labs:
+        for x in game.labs:
             from game.player import Player
-            lab: Player = game._labs[x]
+            lab: Player = game.labs[x]
             if (lab.GetOrdersInput()["blue"]):
-                lab._orders["blue"].append(Order("blue", lab.GetUuid()))
+                lab.orders["blue"].append(Order("blue", lab.GetUuid()))
 
     @staticmethod
     def action5(pl: Player):
@@ -72,11 +72,11 @@ class event:  # Event class
 
     @staticmethod
     def action6(game: Game):
-        for x in game._labs:
+        for x in game.labs:
             from game.player import Player
-            lab: Player = game._labs[x]
+            lab: Player = game.labs[x]
             if (lab.GetOrdersInput()["grey"]):
-                lab._orders["grey"].append(Order("grey", lab.GetUuid()))
+                lab.orders["grey"].append(Order("grey", lab.GetUuid()))
 
     @staticmethod
     def action7(pl: Player):
@@ -84,38 +84,38 @@ class event:  # Event class
 
     @staticmethod
     def action8(game: Game):
-        for x in game._labs:
+        for x in game.labs:
             from game.player import Player
-            lab: Player = game._labs[x]
+            lab: Player = game.labs[x]
             if (lab.GetOrdersInput()["yellow"]):
-                lab._orders["yellow"].append(Order("yellow", lab.GetUuid()))
+                lab.orders["yellow"].append(Order("yellow", lab.GetUuid()))
 
     @staticmethod
     def action9(game: Game):
-        for x in game._labs:
+        for x in game.labs:
             from game.player import Player
-            lab: Player = game._labs[x]
+            lab: Player = game.labs[x]
             if (lab.GetOrdersInput()["purple"]):
-                lab._orders["purple"].append(Order("purple", lab.GetUuid()))
+                lab.orders["purple"].append(Order("purple", lab.GetUuid()))
 
 
 class Events(object):
-    _baseEvents = [
+    baseEvents = [
     ]
-    _events = []
+    events = []
 
-    def __init__(self):
+    def init(self):
         evData = json.loads(codecs.open("data/events.json", encoding='utf-8').read())
         for x in evData:
             for i in range(x['amount']):
-                self._baseEvents.append(event(x))
-        random.shuffle(self._baseEvents)
-        self._events = copy.copy(self._baseEvents)
+                self.baseEvents.append(event(x))
+        random.shuffle(self.baseEvents)
+        self.events = copy.copy(self.baseEvents)
 
     def GetEvent(self):
-        if len(self._events) > 0:
-            return self._events.pop()
+        if len(self.events) > 0:
+            return self.events.pop()
         else:
-            random.shuffle(self._baseEvents)
-            self._events = copy.copy(self._baseEvents)
-            return self._events.pop()
+            random.shuffle(self.baseEvents)
+            self.events = copy.copy(self.baseEvents)
+            return self.events.pop()

@@ -44,13 +44,13 @@ def ReadFile(path: str):
 
 class Game(object):
     """Класс @Game является коренным классом каждой игры."""
-    _day: int = 1
-    _stage: int = 1
-    _uuid: str = uuid4().hex
-    _labs = {}
-    _events: int = 0
-    _rooms: int = 60
-    _equipments: object = {
+    day: int = 1
+    stage: int = 1
+    uuid: str = uuid4().hex
+    labs = {}
+    events: int = 0
+    rooms: int = 60
+    equipments: object = {
         "hand": {
             "yellow": 6,
             "red": 6,
@@ -78,11 +78,11 @@ class Game(object):
         "preanalytic": 12,
         "reporting": 12
     }
-    _persons: object = {
+    persons: object = {
         "doctor": 120,
         "labAssistant": 120
     }
-    _services = {
+    services = {
         "serviceContract": 12  # TODO: заменить на значение которое папа пришлет
     }
 
@@ -93,21 +93,21 @@ class Game(object):
     # создание новой лаборатории
     def NewLab(self, nickname, password):
         pl = Player(nickname, password)
-        self._labs[pl.GetUuid()] = pl
+        self.labs[pl.GetUuid()] = pl
         return pl
 
     # получение лабораторий
     def GetLab(self, labUuid):
-        return self._labs[labUuid]
+        return self.labs[labUuid]
 
     # def newStage(self):
     #     sum = 0
-    #     for lab in self._labs:
+    #     for lab in self.labs:
     #         sum += lab.IsReady()
-    #     if sum == len(self._labs):
-    #         if self._stage == 1:
-    #             self._stage = 2
-    #             for x in self._labs:
+    #     if sum == len(self.labs):
+    #         if self.stage == 1:
+    #             self.stage = 2
+    #             for x in self.labs:
     #                 rep = x.CalcReputation()
     #                 if rep < 10:
     #                     orderLevel = 0
@@ -121,11 +121,11 @@ class Game(object):
     #                     orderLevel = 4
     #                 x.CalcOrdersCount(orderLevel)
     #         else:
-    #             self._day += 1
-    #             self._stage = 1
-    #             for x in self._labs:
+    #             self.day += 1
+    #             self.stage = 1
+    #             for x in self.labs:
     #                 x.NewDay()
-    #                 rep = self._labs[x].CalcReputation()
+    #                 rep = self.labs[x].CalcReputation()
     #                 if rep < 10:
     #                     orderLevel = 0
     #                 elif rep < 20:
@@ -141,25 +141,25 @@ class Game(object):
 
     # купить комнату
     def BuyRoom(self, labUuid: str):
-        if self._rooms > 0 and self._stage == 1 and self._labs[labUuid].CanBuyRoom():
-            self._rooms -= 1
-            return self._labs[labUuid].BuyRoom()
+        if self.rooms > 0 and self.stage == 1 and self.labs[labUuid].CanBuyRoom():
+            self.rooms -= 1
+            return self.labs[labUuid].BuyRoom()
         else:
             return False
 
     # купить оборудование
     def BuyEquipment(self, labUuid, roomUuid, equipmentType, equipmentColor, credit: bool):
-        lab: Player = self._labs[labUuid]
+        lab: Player = self.labs[labUuid]
         equipmentInfo = json.loads(ReadFile('data/equipments.json'))[equipmentType]
-        amount: object = self._equipments[equipmentType]
+        amount: object = self.equipments[equipmentType]
         if equipmentType != "reporting" and equipmentType != "preanalytic":
             amount: int = amount[equipmentColor]
 
-        if amount > 0 and self._stage == 1 and lab.CanBuyEquipment(roomUuid, equipmentInfo):
+        if amount > 0 and self.stage == 1 and lab.CanBuyEquipment(roomUuid, equipmentInfo):
             if equipmentType != "reporting" and equipmentType != "preanalytic":
-                self._equipments[equipmentType][equipmentColor] -= 1
+                self.equipments[equipmentType][equipmentColor] -= 1
             else:
-                self._equipments[equipmentType] -= 1
+                self.equipments[equipmentType] -= 1
             lab.Buy(equipmentInfo["price"], credit)
 
             eq = lab.BuyEquipment(roomUuid, equipmentType, equipmentColor)
@@ -170,7 +170,7 @@ class Game(object):
     # купить сервисы
 
     def BuyLIS(self, labUuid, roomUuid):
-        lab = self._labs[labUuid]
+        lab = self.labs[labUuid]
         eq = lab.GetRooms()[roomUuid].GetEquipment()
         if eq is not None:
             if lab.GetMoney() >= eq.GetLISPrice() and eq.CanBuyLIS():
@@ -179,13 +179,13 @@ class Game(object):
                 return True
 
     def BuyServiceContract(self, labUuid, roomUuid):
-        lab: Player = self._labs[labUuid]
+        lab: Player = self.labs[labUuid]
         ro = lab.GetRooms()[roomUuid]
         eq = ro.GetEquipment()
         if (eq is not None):
-            if self._services[
-                "serviceContract"] > 0 and self._stage == 1 and eq.ServiceContractPrice() < lab.GetMoney() and eq.CanBuyServiceContract():
-                self._services["serviceContract"] -= 1
+            if self.services[
+                "serviceContract"] > 0 and self.stage == 1 and eq.ServiceContractPrice() < lab.GetMoney() and eq.CanBuyServiceContract():
+                self.services["serviceContract"] -= 1
                 lab.Buy(eq.BuyServiceContract())
                 return
             else:
@@ -193,14 +193,14 @@ class Game(object):
 
     # купить персонал
     def BuyPerson(self, labUuid, roomUuid, personType):
-        if self._stage == 1:
-            lab = self._labs[labUuid]
+        if self.stage == 1:
+            lab = self.labs[labUuid]
             room = lab.GetRooms()[roomUuid]
             personInfo = json.loads(ReadFile('data/persons.json'))[personType]
-            if self._persons[personType] > 0 and self._stage == 1 and lab.GetMoney() >= personInfo["price"] and \
+            if self.persons[personType] > 0 and self.stage == 1 and lab.GetMoney() >= personInfo["price"] and \
                     room.GetPersonsCount()[
                         personType] < room.GetPersonsLimit()[personType]:
-                self._persons[personType] -= 1
+                self.persons[personType] -= 1
                 lab.Buy(personInfo["price"])
                 room.BuyPerson(personType)
             else:
@@ -209,18 +209,18 @@ class Game(object):
             return False
 
     def SellPerson(self, labUuid, roomUuid, personType):
-        if self._stage == 1:
-            self._labs[labUuid].GetRooms()[roomUuid].SellPerson(personType)
-            self._persons[personType] += 1
+        if self.stage == 1:
+            self.labs[labUuid].GetRooms()[roomUuid].SellPerson(personType)
+            self.persons[personType] += 1
             return True
         else:
             return False
     # купить реагент
     def BuyReagents(self, labUuid, roomUuid, amount):
-        lab = self._labs[labUuid]
+        lab = self.labs[labUuid]
         ro = lab.GetRooms()[roomUuid]
         eq = ro.GetEquipment()
-        if eq is not None and self._stage == 1 and lab.GetMoney() >= eq.GetReagentPrice() * amount:
+        if eq is not None and self.stage == 1 and lab.GetMoney() >= eq.GetReagentPrice() * amount:
             if eq.CanBuyReagents(amount):
                 eq.BuyReagents(amount)
                 lab.Buy(eq.GetReagentPrice() * amount)
