@@ -1,28 +1,21 @@
-from game.events import events
-from game.game import NewGame, GetGame, Game
+from game.game import GetGame, NewGame, Game
 
-#
+# fullgame.main()
 NewGame()
 game: Game = GetGame()
-# #
 pl = game.NewLab("Игрок", "Пароль")
 ro = game.BuyRoom(pl.GetUuid())
-#
-eq = game.BuyEquipment(pl.GetUuid(), ro.GetUuid(), "reporting", None)
-# game.BuyPerson(pl.GetUuid(), ro.GetUuid(), "doctor")
-# game.BuyPerson(pl.GetUuid(), ro.GetUuid(), "doctor")
-# game.BuyPerson(pl.GetUuid(), ro.GetUuid(), "labAssistant")
-# game.BuyPerson(pl.GetUuid(), ro.GetUuid(), "labAssistant")
-# print("У этого чела репутация:" + str(pl.CalcReputation()))
-# print("У этого чела расходы:" + str(pl.CalcExpenses()))
-#
-# print(copy.copy(game))
+game.BuyPerson(pl.GetUuid(), ro.GetUuid(), "doctor")
+pass
+game.SellPerson(pl.GetUuid(), ro.GetUuid(), "doctor")
+pass
+# pl.SetOrdersInput({'yellow': True, 'red': False, 'blue': False, 'green': False, 'purple': False, 'grey': False})
+# ro = game.BuyRoom(pl.GetUuid())
+# game.BuyEquipment(pl.GetUuid(), ro.GetUuid(), "reporting", None, True)
+# game.BuyLIS(pl.GetUuid(), ro.GetUuid())
+# pl.GetPowerUnits()
+# power = pl.GetPowerUnits()
+# anal = PowerUnit("analytic", "yellow", pl.GetUuid(), ro.GetUuid())
+# preanal = PowerUnit("preanalytic", "yellow", pl.GetUuid(), ro.GetUuid())
 
-events = events()
-for x in range(20):
-    print(events.GetEvent().GetDescription())
-# pickle.dump(game, open("game.pkl", "wb"))
-#
-# game2 = pickle.load(open("game.pkl", "rb"))
-# print(game2)
 pass

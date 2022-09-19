@@ -35,15 +35,20 @@ class event:  # Event class
             if rooms[x].GetEquipment() is not None:
                 if rooms[x].GetEquipment().GetType() == "reporting":
                     rooms[x].GetEquipment().Break()
-                    print(rooms[x].GetEquipment().GetBreaked())
 
     @staticmethod
     def action1(pl: Player):
         pass
 
     @staticmethod
-    def action2(pl: Player):
-        pass
+    def action2(game: Game):
+        for x in game._labs:
+            from game.player import Player
+            lab: Player = game._labs[x]
+            for x in lab.GetOrdersInput():
+                if (lab.GetOrdersInput()[x]):
+                    order = Order(x, lab.GetUuid())
+                    lab._orders[order.GetUuid()] = order
 
     @staticmethod
     def action3(pl: Player):
@@ -51,15 +56,27 @@ class event:  # Event class
 
     @staticmethod
     def action4(game: Game):
-        pass
+        for x in game._labs:
+            from game.player import Player
+            lab: Player = game._labs[x]
+            if (lab.GetOrdersInput()["blue"]):
+                lab._orders["blue"].append(Order("blue", lab.GetUuid()))
 
     @staticmethod
     def action5(pl: Player):
-        pass
+        rooms = pl.GetRooms()
+        for x in rooms:
+            if rooms[x].GetEquipment() is not None:
+                if rooms[x].GetEquipment().GetType() is "preanalytic":
+                    rooms[x].GetEquipment().Break()
 
     @staticmethod
     def action6(game: Game):
-        pass
+        for x in game._labs:
+            from game.player import Player
+            lab: Player = game._labs[x]
+            if (lab.GetOrdersInput()["grey"]):
+                lab._orders["grey"].append(Order("grey", lab.GetUuid()))
 
     @staticmethod
     def action7(pl: Player):
@@ -67,7 +84,11 @@ class event:  # Event class
 
     @staticmethod
     def action8(game: Game):
-        pass
+        for x in game._labs:
+            from game.player import Player
+            lab: Player = game._labs[x]
+            if (lab.GetOrdersInput()["yellow"]):
+                lab._orders["yellow"].append(Order("yellow", lab.GetUuid()))
 
     @staticmethod
     def action9(game: Game):
@@ -75,10 +96,10 @@ class event:  # Event class
             from game.player import Player
             lab: Player = game._labs[x]
             if (lab.GetOrdersInput()["purple"]):
-                lab._ordorders["purple"].append(Order("purple", lab.GetUuid()))
+                lab._orders["purple"].append(Order("purple", lab.GetUuid()))
 
 
-class events(object):
+class Events(object):
     _baseEvents = [
     ]
     _events = []

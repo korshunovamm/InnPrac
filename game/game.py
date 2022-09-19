@@ -1,5 +1,6 @@
 """Модуль содердит класс @Game"""
 import json
+from uuid import uuid4
 
 from game.player import Player
 
@@ -45,10 +46,10 @@ class Game(object):
     """Класс @Game является коренным классом каждой игры."""
     _day: int = 1
     _stage: int = 1
+    _uuid: str = uuid4().hex
     _labs = {}
     _events: int = 0
     _rooms: int = 60
-    _services = 0
     _equipments: object = {
         "hand": {
             "yellow": 6,
@@ -74,12 +75,15 @@ class Game(object):
             "purple": 6,
             "grey": 6
         },
-        "pre_analytic": 12,
+        "preanalytic": 12,
         "reporting": 12
     }
     _persons: object = {
         "doctor": 120,
         "labAssistant": 120
+    }
+    _services = {
+        "serviceContract": 12  # TODO: заменить на значение которое папа пришлет
     }
 
     # конструктор игры
@@ -136,7 +140,7 @@ class Game(object):
     pass
 
     # купить комнату
-    def BuyRoom(self, labUuid):
+    def BuyRoom(self, labUuid: str):
         if self._rooms > 0 and self._stage == 1 and self._labs[labUuid].CanBuyRoom():
             self._rooms -= 1
             return self._labs[labUuid].BuyRoom()
@@ -144,33 +148,84 @@ class Game(object):
             return False
 
     # купить оборудование
-    def BuyEquipment(self, labUuid, roomUuid, equipmentType, equipmentColor):
+    def BuyEquipment(self, labUuid, roomUuid, equipmentType, equipmentColor, credit: bool):
         lab: Player = self._labs[labUuid]
         equipmentInfo = json.loads(ReadFile('data/equipments.json'))[equipmentType]
-        amount = self._equipments[equipmentType]
-        if equipmentType != "reporting" and equipmentType != "pre_analytic":
-            amount = amount[equipmentColor]
+        amount: object = self._equipments[equipmentType]
+        if equipmentType != "reporting" and equipmentType != "preanalytic":
+            amount: int = amount[equipmentColor]
 
         if amount > 0 and self._stage == 1 and lab.CanBuyEquipment(roomUuid, equipmentInfo):
-            if equipmentType != "reporting" and equipmentType != "pre_analytic":
+            if equipmentType != "reporting" and equipmentType != "preanalytic":
                 self._equipments[equipmentType][equipmentColor] -= 1
             else:
                 self._equipments[equipmentType] -= 1
-            lab.Buy(equipmentInfo["price"])
+            lab.Buy(equipmentInfo["price"], credit)
 
             eq = lab.BuyEquipment(roomUuid, equipmentType, equipmentColor)
             return eq
         else:
             return False
 
+    # купить сервисы
+
+    def BuyLIS(self, labUuid, roomUuid):
+        lab = self._labs[labUuid]
+        eq = lab.GetRooms()[roomUuid].GetEquipment()
+        if eq is not None:
+            if lab.GetMoney() >= eq.GetLISPrice() and eq.CanBuyLIS():
+                lab.Buy(eq.GetLISPrice())
+                eq.BuyLIS()
+                return True
+
+    def BuyServiceContract(self, labUuid, roomUuid):
+        lab: Player = self._labs[labUuid]
+        ro = lab.GetRooms()[roomUuid]
+        eq = ro.GetEquipment()
+        if (eq is not None):
+            if self._services[
+                "serviceContract"] > 0 and self._stage == 1 and eq.ServiceContractPrice() < lab.GetMoney() and eq.CanBuyServiceContract():
+                self._services["serviceContract"] -= 1
+                lab.Buy(eq.BuyServiceContract())
+                return
+            else:
+                return False
+
     # купить персонал
     def BuyPerson(self, labUuid, roomUuid, personType):
-        lab = self._labs[labUuid]
-        room = lab.GetRooms()[roomUuid]
-        personInfo = json.loads(ReadFile('data/persons.json'))[personType]
-        if self._persons[personType] > 0 and self._stage == 1 and lab.GetMoney() >= personInfo["price"] and \
-                room.GetPersonCount()[
-                    personType] < room.GetPersonsLimit()[personType]:
-            room.BuyPerson(personType)
+        if self._stage == 1:
+            lab = self._labs[labUuid]
+            room = lab.GetRooms()[roomUuid]
+            personInfo = json.loads(ReadFile('data/persons.json'))[personType]
+            if self._persons[personType] > 0 and self._stage == 1 and lab.GetMoney() >= personInfo["price"] and \
+                    room.GetPersonsCount()[
+                        personType] < room.GetPersonsLimit()[personType]:
+                self._persons[personType] -= 1
+                lab.Buy(personInfo["price"])
+                room.BuyPerson(personType)
+            else:
+                return False
         else:
             return False
+
+    def SellPerson(self, labUuid, roomUuid, personType):
+        if self._stage == 1:
+            self._labs[labUuid].GetRooms()[roomUuid].SellPerson(personType)
+            self._persons[personType] += 1
+            return True
+        else:
+            return False
+    # купить реагент
+    def BuyReagents(self, labUuid, roomUuid, amount):
+        lab = self._labs[labUuid]
+        ro = lab.GetRooms()[roomUuid]
+        eq = ro.GetEquipment()
+        if eq is not None and self._stage == 1 and lab.GetMoney() >= eq.GetReagentPrice() * amount:
+            if eq.CanBuyReagents(amount):
+                eq.BuyReagents(amount)
+                lab.Buy(eq.GetReagentPrice() * amount)
+                return True
+            return True
+
+    # powerUnits
+    
