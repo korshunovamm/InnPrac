@@ -1,13 +1,13 @@
-from game.game import GetGame, NewGame, Game
+from game.game import Game
 
 # fullgame.main()
-NewGame()
-game: Game = GetGame()
-pl = game.NewLab("Игрок", "Пароль")
-ro = game.BuyRoom(pl.GetUuid())
-game.BuyPerson(pl.GetUuid(), ro.GetUuid(), "doctor")
-pass
-game.SellPerson(pl.GetUuid(), ro.GetUuid(), "doctor")
+game: Game = Game()
+pl = game.new_lab("Игрок", "Пароль")
+ro = game.buy_room(pl.get_uuid())
+game.buy_equipment(pl.get_uuid(), "auto", "yellow", True)
+print(game.buy_equipment(pl.get_uuid(), "auto", "yellow", True))
+# ro2 = game.BuyRoom(pl.GetUuid())
+# game.BuyPerson(pl.GetUuid(), ro.GetUuid(), "doctor")
 pass
 # pl.SetOrdersInput({'yellow': True, 'red': False, 'blue': False, 'green': False, 'purple': False, 'grey': False})
 # ro = game.BuyRoom(pl.GetUuid())
