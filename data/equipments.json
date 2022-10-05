@@ -4,60 +4,28 @@
     "expenses": 1,
     "reputation": 1,
     "repair": 5,
-    "reagentPrice": 2,
-    "minPersons": {
-      "doctor": 1,
-      "labAssistant": 3
-    },
-    "maxPersons": {
-      "doctor": 1,
-      "labAssistant": 3
-    }
+    "reagentPrice": 2
   },
-  "semi-manual": {
+  "semi_manual": {
     "price": 30,
     "expenses": 2,
     "reputation": 2,
     "repair": 10,
-    "reagentPrice": 4,
-    "minPersons": {
-      "doctor": 2,
-      "labAssistant": 2
-    },
-    "maxPersons": {
-      "doctor": 2,
-      "labAssistant": 2
-    }
+    "reagentPrice": 4
   },
   "auto": {
     "price": 60,
     "expenses": 3,
     "reputation": 3,
     "repair": 15,
-    "reagentPrice": 5,
-    "minPersons": {
-      "doctor": 1,
-      "labAssistant": 3
-    },
-    "maxPersons": {
-      "doctor": 1,
-      "labAssistant": 3
-    }
+    "reagentPrice": 5
   },
   "pre_analytic": {
     "price": 6,
     "expenses": 1,
     "reputation": 1,
     "repair": 2,
-    "reagentPrice": 1,
-    "minPersons": {
-      "doctor": 0,
-      "labAssistant": 1
-    },
-    "maxPersons": {
-      "doctor": 0,
-      "labAssistant": 3
-    }
+    "reagentPrice": 1
   },
   "reporting": {
     "price": 10,
@@ -65,13 +33,9 @@
     "reputation": 2,
     "repair": 4,
     "reagentPrice": 2,
-    "minPersons": {
+    "min_staff": {
       "doctor": 0,
-      "labAssistant": 1
-    },
-    "maxPersons": {
-      "doctor": 0,
-      "labAssistant": 3
+      "lab_assistant": 1
     }
   }
 }
