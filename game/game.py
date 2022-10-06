@@ -1,7 +1,9 @@
 import json
 from uuid import uuid4
 
+from game.entitys.events import Events
 from game.player import Player
+from game.deal import TradeReq
 
 
 def read_file(path: str):
@@ -12,58 +14,58 @@ def read_file(path: str):
 
 
 class Game(object):
-    """Класс @Game является коренным классом каждой игры."""
-    day: int = 1
-    stage: int = 1
-    uuid: str = uuid4().hex
-    labs = {}
-    events: int = 0
-    rooms: int = 60
-    equipments: object = {
-        "hand": {
-            "yellow": 6,
-            "red": 6,
-            "blue": 6,
-            "green": 6,
-            "purple": 6,
-            "grey": 6
-        },
-        "semi-manual": {
-            "yellow": 6,
-            "red": 6,
-            "blue": 6,
-            "green": 6,
-            "purple": 6,
-            "grey": 6
-        },
-        "auto": {
-            "yellow": 6,
-            "red": 6,
-            "blue": 6,
-            "green": 6,
-            "purple": 6,
-            "grey": 6
-        },
-        "pre_analytic": 12,
-        "reporting": 12
-    }
-    persons: object = {
-        "doctor": 120,
-        "labAssistant": 120
-    }
-    services = {
-        "serviceContract": 12  # TODO: заменить на значение которое папа пришлет
-    }
+    max_pl_count: int = 6
 
     # конструктор игры
     def __init__(self):
-        pass
+        self.credits = 12
+        self.day: int = 1
+        self.stage: int = 1
+        self.uuid: str = uuid4().hex
+        self.labs = {}
+        self.events = Events()
+        self.rooms: int = 60
+        self.equipments: object = {
+            "hand": {
+                "yellow": 6,
+                "red": 6,
+                "blue": 6,
+                "green": 6,
+                "purple": 6,
+                "grey": 6
+            },
+            "semi_manual": {
+                "yellow": 6,
+                "red": 6,
+                "blue": 6,
+                "green": 6,
+                "purple": 6,
+                "grey": 6
+            },
+            "auto": {
+                "yellow": 6,
+                "red": 6,
+                "blue": 6,
+                "green": 6,
+                "purple": 6,
+                "grey": 6
+            },
+            "pre_analytic": 12,
+            "reporting": 12
+        }
+        self.staff: object = {
+            "doctor": 120,
+            "lab_assistant": 120
+        }
 
     # создание новой лаборатории
     def new_lab(self, nickname, password):
-        pl = Player(nickname, password)
-        self.labs[pl.get_uuid()] = pl
-        return pl
+        if len(self.labs) < self.max_pl_count:
+            pl = Player(nickname, password)
+            self.labs[pl.get_uuid()] = pl
+            return pl
+        else:
+            return False
 
     # получение лабораторий
 
@@ -104,7 +106,6 @@ class Game(object):
     #                 else:
     #                     orderLevel = 4
     #                 x.CalcOrdersCount(orderLevel)
-    pass
 
     # купить комнату
     def buy_room(self, lab_uuid: str):
@@ -136,16 +137,25 @@ class Game(object):
                 self.equipments[eq_type] -= 1
             eq = lab.buy_equipment(eq_type, eq_color)
             if eq is not False:
-                lab.buy(equipment_info["price"], credit)
-            return eq
+                if credit and self.credits > 0:
+                    self.credits -= 1
+                    lab.buy(equipment_info["price"], credit)
+                    return eq, True
+                else:
+                    lab.buy(equipment_info["price"])
+                    return eq, False
         else:
             return False
 
     # продать оборудование
     def sell_equipment(self, lab_uuid, eq_uuid):
-        lab: Player = self.labs[lab_uuid]
-        lab.sell_equipment(eq_uuid)
-        return self.labs[lab_uuid].sell(eq_uuid)
+        if self.stage == 1:
+            res = self.labs[lab_uuid].sell_equipment(eq_uuid)
+            if res[0] != "reporting" and res[0] != "pre_analytic":
+                self.equipments[res[0]][res[1]] += 1
+            else:
+                self.equipments[res[0]] += 1
+            return res
 
     # переместить оборудование
     def move_equipment_to_room(self, lab_uuid, room_uuid, eq_uuid):
@@ -165,42 +175,59 @@ class Game(object):
                 return True
 
     def buy_service_contract(self, pl_uuid, eq_uuid):
-        if self.services["serviceContract"] > 0 and self.stage == 1:
-            if self.labs[pl_uuid].buy_service_contract(eq_uuid):
-                self.services["serviceContract"] -= 1
-                return True
-            else:
-                return False
+        if self.stage == 1:
+            return self.labs[pl_uuid].buy_service_contract(eq_uuid)
 
     # купить персонал
-    def buy_person(self, pl_uuid, ro_uuid, person_type):
-        if self.stage == 1:
-            if self.labs[pl_uuid].buy_person(ro_uuid, person_type):
-                self.persons[person_type] -= 1
+    def buy_staff(self, pl_uuid, ro_uuid, staff_type):
+        if self.stage == 1 and self.staff[staff_type] > 0:
+            if self.labs[pl_uuid].buy_staff(ro_uuid, staff_type):
+                self.staff[staff_type] -= 1
                 return True
             else:
                 return False
         else:
             return False
 
-    def sell_person(self, lab_uuid, ro_uuid, person_type):
+    # продать персонал
+    def sell_staff(self, lab_uuid, ro_uuid, staff_type):
         if self.stage == 1:
-            self.labs[lab_uuid].get_rooms()[ro_uuid].sell_person(person_type)
-            self.persons[person_type] += 1
+            self.labs[lab_uuid].get_rooms()[ro_uuid].sell_staff(staff_type)
+            self.staff[staff_type] += 1
             return True
         else:
             return False
 
-    # купить реагент
-    def buy_reagents(self, lab_uuid, ro_uuid, amount):
-        lab = self.labs[lab_uuid]
-        ro = lab.get_rooms()[ro_uuid]
-        eq = ro.get_equipment()
-        if eq is not None and self.stage == 1 and lab.get_money() >= eq.get_reagent_price() * amount:
-            if eq.can_buy_reagents(amount):
-                eq.buy_reagents(amount)
-                lab.buy(eq.get_reagent_price() * amount)
-                return True
+    # взаимодействие игроков
+    # новая сделка
+    def new_trade_req(self, pl_0_uuid, pl_1_uuid, pl_0_items, pl_1_items):
+        if self.stage == 1:
+            trade = TradeReq(self.labs[pl_0_uuid], pl_0_items, pl_1_items)
+            self.labs[pl_0_uuid].add_trade_req(trade)
+            self.labs[pl_1_uuid].add_trade_req(trade)
             return True
+        else:
+            return False
 
+    # принять сделку
+    def accept_trade_req(self, pl_uuid, trade_uuid):
+        if self.stage == 1:
+            self.labs[pl_uuid].accept_trade_req(trade_uuid)
+            return True
+        else:
+            return False
+
+    # отклонить сделку
+    def decline_trade_req(self, pl_uuid, trade_uuid):
+        if self.stage == 1:
+            self.labs[pl_uuid].decline_trade_req(trade_uuid)
+            return True
+        else:
+            return False
+    # купить реагент
+    def buy_reagents(self, lab_uuid, eq_uuid, amount):
+        if self.stage == 1:
+            return self.labs[lab_uuid].buy_reagents(eq_uuid, amount)
+        else:
+            return False
     # powerUnits

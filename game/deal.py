@@ -1,3 +1,4 @@
+import array
 from uuid import uuid4
 
 
@@ -80,29 +81,35 @@ class TradeReq:
         del seller.rooms[ro_uuid]
 
 class PledgeReq:
-    def __init__(self, player_0, price, player1_item):
+    def __init__(self, player_0, purchase_price: int, redemption_price: int, items: array, end_date: int):
         self.uuid = uuid4().hex
         self.player0 = player_0
         self.player1 = None
-        self.player0_money = player0_money
-        self.player1_items = player1_item
+        self.purchase_price = purchase_price
+        self.redemption_price = redemption_price
+        self.items = items
         self.status = 'pending'
         self.player0_status = 'accepted'
+        self.player0.pledges[self.uuid] = self
         self.player1_status = 'pending'
+
 
     def get_uuid(self):
         return self.uuid
 
+    def get_status(self):
+        return self.status
     def accept(self, player):
         if player.get_uuid() == self.player0.get_uuid():
-            self.player0_status = 'accepted'
             self.player0 = player
+            self.player0_status = 'accepted'
         else:
             self.player1 = player
+            player.pledges[self.uuid] = self
             self.player1_status = 'accepted'
-        if self.player0_status == 'accepted' and self.player1_status == 'accepted':
+        if self.player0_status == 'accepted' and self.player1_status == 'accepted' and self.status == 'pending':
             self.status = 'executed'
-            self.execute()
+            self.execute_pledge()
 
     def decline(self, player):
         if player.get_uuid() == self.player0.get_uuid():
@@ -110,5 +117,42 @@ class PledgeReq:
         else:
             self.player1_status = 'declined'
 
-    # def execute(self):
+    def execute_pledge(self): # TODO: начало, забираем вещи у игрока 0, зачисляем деньги игроку 0
+        self.player1.buy(self.purchase_price)
+        self.player0.sell(self.purchase_price)
+        for x in self.items:
+            match x["type"]:
+                case "equipment":
+                    self.player1.equipments[x["data"].get_uuid()] = x["data"]
+                case "room":
+                    x["data"].staff_count = {
+                        "doctor": 0,
+                        "lab_assistant": 0
+                    }
+                    eq = x["data"].get_equipment()
+                    if eq is not None:
+                        self.player0.move_equipment_from_room(eq.get_uuid())
+                    del self.player0.rooms[x["data"].get_uuid()]
+        pass # TODO: продаем предметы игроку 1 и получаем деньги на счет игрока 0
 
+    def execute_redeem(self): # TODO: выкупаем предметы назад и зачисляем их на счет игрока 0, деньги на счет игрока 1
+        self.status = 'cancelled'
+        for x in self.items:
+            match x["type"]:
+                case "equipment":
+                    self.player0.equipments[x["data"].get_uuid()] = x["data"]
+                case "room":
+                    self.player0.rooms[x["data"].get_uuid()] = x["data"]
+        self.player0.buy(self.redemption_price)
+        self.player1.sell(self.redemption_price)
+
+    def execute_give_bail(self):
+        if self.status == 'executed':
+            del self.player0.pledges[self.uuid]
+            del self.player1.pledges[self.uuid]
+            for x in self.items:
+                match x["type"]:
+                    case "equipment":
+                        self.player1.equipments[x["data"].get_uuid()] = x["data"]
+                    case "room":
+                        self.player1.rooms[x["data"].get_uuid()] = x["data"]

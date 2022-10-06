@@ -3,12 +3,8 @@ import copy
 import json
 import random
 
-from game.entitys.order import Order
-
 
 class Event:  # Event class
-    from game.player import Player
-    from game.game import Game
 
     def get_name(self):
         return self.name
@@ -22,14 +18,16 @@ class Event:  # Event class
         self.input = event_data["input"]
         self.code: int = event_data["code"]
 
-    def action(self, obj):
+    def action(self, obj=None):
+        if self.input_type() == "nothing":
+            exec("self.action" + str(self.code) + "()")
         exec("self.action" + str(self.code) + "(obj)")
 
     def input_type(self):
         return self.input
 
     @staticmethod
-    def action0(pl: Player):
+    def action0(pl):
         rooms = pl.get_rooms()
         for x in rooms:
             if rooms[x].get_equipment() is not None:
@@ -37,71 +35,180 @@ class Event:  # Event class
                     rooms[x].get_equipment().break_it()
 
     @staticmethod
-    def action1(pl: Player):
-        pass
+    def action1(pl):
+        pass  # TODO: добавить событие
 
     @staticmethod
-    def action2(game: Game):
+    def action2(game):
         for x in game.labs:
-            from game.player import Player
-            lab: Player = game.labs[x]
-            for i in lab.get_orders_input():
-                if lab.get_orders_input()[i]:
-                    order = Order(i, lab.get_uuid())
-                    lab.orders[order.get_uuid()] = order
+            lab = game.labs[x]
+            for i in lab.orders_correction:
+                lab.orders_correction[i] = 1
 
     @staticmethod
-    def action3(pl: Player):
-        pass
+    def action3(pl):
+        pass  # TODO: добавить событие
 
     @staticmethod
-    def action4(game: Game):
+    def action4(game):
         for x in game.labs:
-            from game.player import Player
-            lab: Player = game.labs[x]
-            if lab.get_orders_input()["blue"]:
-                lab.orders["blue"].append(Order("blue", lab.get_uuid()))
+            game.labs[x].orders_corection["blue"] = 1
 
     @staticmethod
-    def action5(pl: Player):
+    def action5(pl):
         rooms = pl.get_rooms()
         for x in rooms:
             if rooms[x].get_equipment() is not None:
-                if rooms[x].get_equipment().get_type() is "pre_analytic":
+                if rooms[x].get_equipment().get_type() == "pre_analytic":
                     rooms[x].get_equipment().break_it()
 
     @staticmethod
-    def action6(game: Game):
+    def action6(game):
         for x in game.labs:
-            from game.player import Player
-            lab: Player = game.labs[x]
-            if lab.get_orders_input()["grey"]:
-                lab.orders["grey"].append(Order("grey", lab.get_uuid()))
+            game.labs[x].orders_corection["grey"] = 1
 
     @staticmethod
-    def action7(pl: Player):
+    def action7(pl):
+        rooms = list(pl.get_rooms().items())
+        for x in rooms:
+            if x[1].get_staff_count()["lab_assistant"] > 0:
+                x[1].staff_count["lab_assistant"] -= 1
+                return
+
+    @staticmethod
+    def action8(game):
+        for x in game.labs:
+            game.labs[x].orders_corection["yellow"] = 1
+
+    @staticmethod
+    def action9(game):
+        for x in game.labs:
+            game.labs[x].orders_corection["purple"] = 1
+
+    @staticmethod
+    def action10(pl):
+        if pl.events["saved_from_negative_analytics"] is False:
+            for x in pl.rooms:
+                eq = pl.rooms[x].get_equipment()
+                if eq is not None:
+                    if eq.type == "auto":
+                        eq.break_it()
+            for x in pl.equipments:
+                eq = pl.equipments[x]
+                if eq.type == "auto":
+                    eq.break_it()
+
+    @staticmethod
+    def action11(pl):
+        if pl.events["saved_from_negative_analytics"] is False:
+            for x in pl.rooms:
+                eq = pl.rooms[x].get_equipment()
+                if eq is not None:
+                    if eq.type == "semi_manual":
+                        eq.break_it()
+            for x in pl.equipments:
+                eq = pl.equipments[x]
+                if eq.type == "semi_manual":
+                    eq.break_it()
+
+    @staticmethod
+    def action12(pl):
+        pass  # TODO: добавить событие
+
+    @staticmethod
+    def action13(pl):
+        if pl.events["saved_from_negative_analytics"] is False:
+            for x in pl.rooms:
+                eq = pl.rooms[x].get_equipment()
+                if eq is not None:
+                    if eq.type == "hand":
+                        eq.break_it()
+            for x in pl.equipments:
+                eq = pl.equipments[x]
+                if eq.type == "hand":
+                    eq.break_it()
+
+    @staticmethod
+    def action14():
         pass
 
     @staticmethod
-    def action8(game: Game):
-        for x in game.labs:
-            from game.player import Player
-            lab: Player = game.labs[x]
-            if lab.get_orders_input()["yellow"]:
-                lab.orders["yellow"].append(Order("yellow", lab.get_uuid()))
+    def action15(pl):
+        pl.events["saved_from_negative_analytics"] = True
 
     @staticmethod
-    def action9(game: Game):
+    def action16(pl):
+        if pl.money >= 10:
+            pl.money -= 10
+        else:
+            pl.base_reputation -= 3
+
+    @staticmethod
+    def action17(pl):
+        rooms = list(pl.get_rooms().items())
+        for x in rooms:
+            if x[1].get_staff_count()["doctor"] > 0:
+                x[1].staff_count["doctor"] -= 1
+                return
+
+    @staticmethod
+    def action18(game):
         for x in game.labs:
-            from game.player import Player
-            lab: Player = game.labs[x]
-            if lab.get_orders_input()["purple"]:
-                lab.orders["purple"].append(Order("purple", lab.get_uuid()))
+            lab = game.labs[x]
+            for i in lab.orders_correction:
+                lab.orders_correction[i] -= 1
+
+    @staticmethod
+    def action19(pl):
+        pl.base_reputation -= 3
+
+    @staticmethod
+    def action20(game):
+        for x in game.labs:
+            lab = game.labs[x]
+            for i in lab.orders_correction:
+                lab.orders_correction[i] -= 1
+
+    @staticmethod
+    def action21(game):
+        for x in game.labs:
+            game.labs[x].orders_corection["green"] = 1
+
+    @staticmethod
+    def action22(pl):
+        pass  # TODO: добавить событие
+
+    @staticmethod
+    def action23(game):
+        for x in game.labs:
+            game.labs[x].orders_corection["red"] = 1
+
+    @staticmethod
+    def action24(pl):
+        orders = {
+            "blue": 0,
+            "grey": 0,
+            "yellow": 0,
+            "purple": 0,
+            "red": 0,
+            "green": 0
+        }
+        for x in pl.rooms:
+            eq = pl.rooms[x].get_equipment()
+            if eq is not None:
+                if eq.type != "reporting" and eq.type != "pre_analytic":
+                    orders[eq.get_color()] += eq.get_max_power()
+
+        pl.orders_is_calculated = True
+        pl.orders = orders
+
+    @staticmethod
+    def action25(pl):
+        pl.orders_reputation += 5
 
 
-class Events(object):
-    baseEvents = [
-    ]
+class Events:
+    baseEvents = []
     events = []
 
     def __init__(self):
