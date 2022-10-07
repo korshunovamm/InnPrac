@@ -36,7 +36,7 @@ class Event:  # Event class
 
     @staticmethod
     def action1(pl):
-        pass  # TODO: добавить событие
+        pl.events["power_reduction"] = True
 
     @staticmethod
     def action2(game):
@@ -52,7 +52,7 @@ class Event:  # Event class
     @staticmethod
     def action4(game):
         for x in game.labs:
-            game.labs[x].orders_corection["blue"] = 1
+            game.labs[x].orders_correction["blue"] = 1
 
     @staticmethod
     def action5(pl):
@@ -65,25 +65,25 @@ class Event:  # Event class
     @staticmethod
     def action6(game):
         for x in game.labs:
-            game.labs[x].orders_corection["grey"] = 1
+            game.labs[x].orders_correction["grey"] = 1
 
     @staticmethod
     def action7(pl):
-        rooms = list(pl.get_rooms().items())
+        rooms = pl.get_rooms().values()
         for x in rooms:
-            if x[1].get_staff_count()["lab_assistant"] > 0:
-                x[1].staff_count["lab_assistant"] -= 1
+            if x.get_staff_count()["lab_assistant"] > 0:
+                x.staff_count["lab_assistant"] -= 1
                 return
 
     @staticmethod
     def action8(game):
         for x in game.labs:
-            game.labs[x].orders_corection["yellow"] = 1
+            game.labs[x].orders_correction["yellow"] = 1
 
     @staticmethod
     def action9(game):
         for x in game.labs:
-            game.labs[x].orders_corection["purple"] = 1
+            game.labs[x].orders_correction["purple"] = 1
 
     @staticmethod
     def action10(pl):
@@ -113,7 +113,7 @@ class Event:  # Event class
 
     @staticmethod
     def action12(pl):
-        pass  # TODO: добавить событие
+        pl.events["need_have_logistic"] = True
 
     @staticmethod
     def action13(pl):
@@ -145,10 +145,10 @@ class Event:  # Event class
 
     @staticmethod
     def action17(pl):
-        rooms = list(pl.get_rooms().items())
+        rooms = pl.get_rooms().values()
         for x in rooms:
-            if x[1].get_staff_count()["doctor"] > 0:
-                x[1].staff_count["doctor"] -= 1
+            if x.get_staff_count()["doctor"] > 0:
+                x.staff_count["doctor"] -= 1
                 return
 
     @staticmethod
@@ -172,16 +172,17 @@ class Event:  # Event class
     @staticmethod
     def action21(game):
         for x in game.labs:
-            game.labs[x].orders_corection["green"] = 1
+            game.labs[x].orders_correction["green"] = 1
 
     @staticmethod
     def action22(pl):
-        pass  # TODO: добавить событие
+        pl.events["power_is_calculated"] = True
+        pl.events["orders_is_calculated"] = True
 
     @staticmethod
     def action23(game):
         for x in game.labs:
-            game.labs[x].orders_corection["red"] = 1
+            game.labs[x].orders_correction["red"] = 1
 
     @staticmethod
     def action24(pl):
@@ -207,14 +208,19 @@ class Event:  # Event class
         pl.orders_reputation += 5
 
 
+def generate_events():
+    events = []
+    for x in json.loads(codecs.open("data/events.json", encoding='utf-8').read()):
+        for i in range(x['amount']):
+            events.append(Event(x))
+    return events
+
+
 class Events:
-    baseEvents = []
+    baseEvents = generate_events()
     events = []
 
     def __init__(self):
-        for x in json.loads(codecs.open("data/events.json", encoding='utf-8').read()):
-            for i in range(x['amount']):
-                self.baseEvents.append(Event(x))
         random.shuffle(self.baseEvents)
         self.events = copy.copy(self.baseEvents)
 

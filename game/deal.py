@@ -35,7 +35,7 @@ class TradeReq:
 
     def execute(self):
         for item in self.player0_items:
-            match item["type"]: # удаляем предметы у первого игрока и добавляем второму
+            match item["type"]:  # удаляем предметы у первого игрока и добавляем второму
                 case "money":
                     self.player0.buy(item["data"])
                     self.player1.sell(item["data"])
@@ -80,6 +80,7 @@ class TradeReq:
         buyer.rooms[ro_uuid] = ro
         del seller.rooms[ro_uuid]
 
+
 class PledgeReq:
     def __init__(self, player_0, purchase_price: int, redemption_price: int, items: array, end_date: int):
         self.uuid = uuid4().hex
@@ -93,12 +94,12 @@ class PledgeReq:
         self.player0.pledges[self.uuid] = self
         self.player1_status = 'pending'
 
-
     def get_uuid(self):
         return self.uuid
 
     def get_status(self):
         return self.status
+
     def accept(self, player):
         if player.get_uuid() == self.player0.get_uuid():
             self.player0 = player
@@ -117,7 +118,7 @@ class PledgeReq:
         else:
             self.player1_status = 'declined'
 
-    def execute_pledge(self): # TODO: начало, забираем вещи у игрока 0, зачисляем деньги игроку 0
+    def execute_pledge(self):  # TODO: начало, забираем вещи у игрока 0, зачисляем деньги игроку 0
         self.player1.buy(self.purchase_price)
         self.player0.sell(self.purchase_price)
         for x in self.items:
@@ -133,9 +134,9 @@ class PledgeReq:
                     if eq is not None:
                         self.player0.move_equipment_from_room(eq.get_uuid())
                     del self.player0.rooms[x["data"].get_uuid()]
-        pass # TODO: продаем предметы игроку 1 и получаем деньги на счет игрока 0
+        pass  # TODO: продаем предметы игроку 1 и получаем деньги на счет игрока 0
 
-    def execute_redeem(self): # TODO: выкупаем предметы назад и зачисляем их на счет игрока 0, деньги на счет игрока 1
+    def execute_redeem(self):  # TODO: выкупаем предметы назад и зачисляем их на счет игрока 0, деньги на счет игрока 1
         self.status = 'cancelled'
         for x in self.items:
             match x["type"]:

@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from game.entitys.events import Events
 from game.player import Player
-from game.deal import TradeReq
+from game.deal import TradeReq, PledgeReq
 
 
 def read_file(path: str):
@@ -18,6 +18,7 @@ class Game(object):
 
     # конструктор игры
     def __init__(self):
+        self.pledges = {}  # залоги игроков TODO: при переходе с 2 на 1 стадию, проверяем что они не просрочены и не отменены
         self.credits = 12
         self.day: int = 1
         self.stage: int = 1
@@ -67,8 +68,11 @@ class Game(object):
         else:
             return False
 
-    # получение лабораторий
-
+    def transition_to_stage_2(self):
+        if self.stage == 1:
+            self.stage = 2
+            for lab in self.labs.values():
+                lab.transition_to_stage_2()
     # def newStage(self):
     #     sum = 0
     #     for lab in self.labs:
@@ -163,6 +167,7 @@ class Game(object):
 
     def move_equipment_from_room(self, lab_uuid, room_uuid):
         return self.labs[lab_uuid].move_equipment_from_room(room_uuid)
+
     # купить сервисы
 
     def buy_lis(self, lab_uuid, ro_uuid):
@@ -192,7 +197,7 @@ class Game(object):
     # продать персонал
     def sell_staff(self, lab_uuid, ro_uuid, staff_type):
         if self.stage == 1:
-            self.labs[lab_uuid].get_rooms()[ro_uuid].sell_staff(staff_type)
+            self.labs[lab_uuid].get_rooms()[ro_uuid].remove_staff(staff_type)
             self.staff[staff_type] += 1
             return True
         else:
@@ -224,6 +229,16 @@ class Game(object):
             return True
         else:
             return False
+
+    # новый залог
+    def new_pledge_req(self, pl_0_uuid, pl_1_uuid, purchase_price, redemption_price, items, duration):
+        if self.stage == 1:
+            trade = PledgeReq(self.labs[pl_0_uuid], purchase_price, redemption_price, items, self.day + duration)
+            self.labs[pl_1_uuid].pleadges = trade
+            return True
+        else:
+            return False
+
     # купить реагент
     def buy_reagents(self, lab_uuid, eq_uuid, amount):
         if self.stage == 1:

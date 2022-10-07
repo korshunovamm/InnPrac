@@ -1,0 +1,12 @@
+{
+  "doctor": {
+    "price": 2,
+    "expenses": 2,
+    "reputation": 1
+  },
+  "lab_assistant": {
+    "price": 1,
+    "expenses": 1,
+    "reputation": 1
+  }
+}
