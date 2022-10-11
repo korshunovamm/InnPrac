@@ -80,7 +80,7 @@ class Move(unittest.TestCase):
         game.move_equipment_from_room(pl.get_uuid(), eq.get_uuid())
         self.assertEqual(11, game.equipments["pre_analytic"])
         self.assertIsNone(ro.get_equipment())
-        self.assertIsNone(pl.equipments_rooms.get(eq.get_uuid()))
+        self.assertIsNone(pl.equipments_rooms.new_game(eq.get_uuid()))
         self.assertEqual(pl.equipments[eq.get_uuid()], eq)
 
 

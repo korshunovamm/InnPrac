@@ -5,6 +5,9 @@ import random
 
 
 class Event:  # Event class
+    def generate_dict(self):
+        ret = copy.copy(self.__dict__)
+        return ret
 
     def get_name(self):
         return self.name
@@ -217,6 +220,8 @@ def generate_events():
 
 
 class Events:
+
+
     baseEvents = generate_events()
     events = []
 

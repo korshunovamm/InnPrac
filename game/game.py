@@ -1,3 +1,5 @@
+import copy
+import inspect
 import json
 from uuid import uuid4
 
@@ -14,7 +16,19 @@ def read_file(path: str):
 
 
 class Game(object):
+    def get_uuid(self):
+        return self.uuid
+
     max_pl_count: int = 6
+
+    def generate_dict(self):
+        ret = copy.copy(self.__dict__)
+        ret['labs'] = {}
+        for x in self.labs:
+            ret['labs'][x] = self.labs[x].generate_dict()
+        del ret['pledges']
+        del ret['events']
+        return ret
 
     # конструктор игры
     def __init__(self):
@@ -27,42 +41,50 @@ class Game(object):
         self.events = Events()
         self.rooms: int = 60
         self.equipments: object = {
-            "hand": {
-                "yellow": 6,
-                "red": 6,
-                "blue": 6,
-                "green": 6,
-                "purple": 6,
-                "grey": 6
+            'hand': {
+                'yellow': 6,
+                'red': 6,
+                'blue': 6,
+                'green': 6,
+                'purple': 6,
+                'grey': 6
             },
-            "semi_manual": {
-                "yellow": 6,
-                "red": 6,
-                "blue": 6,
-                "green": 6,
-                "purple": 6,
-                "grey": 6
+            'semi_manual': {
+                'yellow': 6,
+                'red': 6,
+                'blue': 6,
+                'green': 6,
+                'purple': 6,
+                'grey': 6
             },
-            "auto": {
-                "yellow": 6,
-                "red": 6,
-                "blue": 6,
-                "green": 6,
-                "purple": 6,
-                "grey": 6
+            'auto': {
+                'yellow': 6,
+                'red': 6,
+                'blue': 6,
+                'green': 6,
+                'purple': 6,
+                'grey': 6
             },
-            "pre_analytic": 12,
-            "reporting": 12
+            'pre_analytic': 12,
+            'reporting': 12
         }
         self.staff: object = {
-            "doctor": 120,
-            "lab_assistant": 120
+            'doctor': 120,
+            'lab_assistant': 120
         }
+        self.status = 'waiting'
+
+    # кол-во людей в игре
+    def get_max_players(self):
+        return self.max_pl_count
+
+    def get_players_count(self):
+        return len(self.labs)
 
     # создание новой лаборатории
-    def new_lab(self, nickname, password):
+    def new_lab(self):
         if len(self.labs) < self.max_pl_count:
-            pl = Player(nickname, password)
+            pl = Player()
             self.labs[pl.get_uuid()] = pl
             return pl
         else:
@@ -73,6 +95,7 @@ class Game(object):
             self.stage = 2
             for lab in self.labs.values():
                 lab.transition_to_stage_2()
+
     # def newStage(self):
     #     sum = 0
     #     for lab in self.labs:
@@ -115,9 +138,9 @@ class Game(object):
     def buy_room(self, lab_uuid: str):
         if self.rooms > 0 and self.stage == 1 and self.labs[lab_uuid].can_buy_room():
             self.rooms -= 1
-            return self.labs[lab_uuid].buy_room()
+            return True, self.labs[lab_uuid].buy_room()
         else:
-            return False
+            return False, None
 
     # продать комнату
 
@@ -131,11 +154,10 @@ class Game(object):
         lab: Player = self.labs[lab_uuid]
         equipment_info = json.loads(read_file('data/equipments.json'))[eq_type]
         amount: int = self.equipments[eq_type]
-        if eq_type != "reporting" and eq_type != "pre_analytic":
+        if eq_type != 'reporting' and eq_type != 'pre_analytic':
             amount: int = amount[eq_color]
-
         if amount > 0 and self.stage == 1 and lab.can_buy_equipment(equipment_info):
-            if eq_type != "reporting" and eq_type != "pre_analytic":
+            if eq_type != 'reporting' and eq_type != 'pre_analytic':
                 self.equipments[eq_type][eq_color] -= 1
             else:
                 self.equipments[eq_type] -= 1
@@ -143,23 +165,27 @@ class Game(object):
             if eq is not False:
                 if credit and self.credits > 0:
                     self.credits -= 1
-                    lab.buy(equipment_info["price"], credit)
-                    return eq, True
+                    lab.buy(equipment_info['price'], credit)
+                    return True, eq
                 else:
-                    lab.buy(equipment_info["price"])
-                    return eq, False
+                    return False, None
         else:
-            return False
+            return False, None
 
     # продать оборудование
     def sell_equipment(self, lab_uuid, eq_uuid):
         if self.stage == 1:
             res = self.labs[lab_uuid].sell_equipment(eq_uuid)
-            if res[0] != "reporting" and res[0] != "pre_analytic":
-                self.equipments[res[0]][res[1]] += 1
-            else:
-                self.equipments[res[0]] += 1
-            return res
+            if res is not False:
+                if res[1] not in ['reporting', 'pre_analytic']:
+                    self.equipments[res[1]][res[2]] += 1
+                else:
+                    self.equipments[res[1]] += 1
+                return True
+            return False
+
+        else:
+            return False
 
     # переместить оборудование
     def move_equipment_to_room(self, lab_uuid, room_uuid, eq_uuid):

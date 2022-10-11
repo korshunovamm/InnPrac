@@ -1,8 +1,16 @@
 import array
+import copy
+import json
 from uuid import uuid4
 
 
 class TradeReq:
+    def generate_dict(self):
+        ret = copy.copy(self.__dict__)
+        ret['player0'] = self.player0.get_uuid()
+        ret['player1'] = self.player1.get_uuid()
+        return ret
+
     def __init__(self, player_0, player0_items, player1_items):
         self.uuid = uuid4().hex
         self.player0 = player_0
@@ -35,24 +43,24 @@ class TradeReq:
 
     def execute(self):
         for item in self.player0_items:
-            match item["type"]:  # удаляем предметы у первого игрока и добавляем второму
-                case "money":
-                    self.player0.buy(item["data"])
-                    self.player1.sell(item["data"])
-                case "equipment":
-                    self.sell_equipment(item["data"], 0)
-                case "room":
-                    self.sell_room(item["data"], 0)
+            match item['type']:  # удаляем предметы у первого игрока и добавляем второму
+                case 'money':
+                    self.player0.buy(item['data'])
+                    self.player1.sell(item['data'])
+                case 'equipment':
+                    self.sell_equipment(item['data'], 0)
+                case 'room':
+                    self.sell_room(item['data'], 0)
 
         for item in self.player1_items:
-            match item["type"]:  # удаляем предметы у второго игрока и добавляем первому
-                case "money":
-                    self.player1.buy(item["data"])
-                    self.player0.sell(item["data"])
-                case "equipment":
-                    self.sell_equipment(item["data"], 1)
-                case "room":
-                    self.sell_room(item["data"], 1)
+            match item['type']:  # удаляем предметы у второго игрока и добавляем первому
+                case 'money':
+                    self.player1.buy(item['data'])
+                    self.player0.sell(item['data'])
+                case 'equipment':
+                    self.sell_equipment(item['data'], 1)
+                case 'room':
+                    self.sell_room(item['data'], 1)
 
     def sell_equipment(self, eq_uuid, seller_num):
         seller = self.player0 if seller_num == 0 else self.player1
@@ -74,14 +82,20 @@ class TradeReq:
         if eq is not None:
             seller.move_equipment_from_room(eq.get_uuid())
         ro.staff_count = {
-            "doctor": 0,
-            "lab_assistant": 0
+            'doctor': 0,
+            'lab_assistant': 0
         }
         buyer.rooms[ro_uuid] = ro
         del seller.rooms[ro_uuid]
 
 
 class PledgeReq:
+    def generate_dict(self):
+        ret = copy.copy(self.__dict__)
+        ret['player0'] = self.player0.get_uuid()
+        ret['player1'] = self.player1.get_uuid()
+        return ret
+
     def __init__(self, player_0, purchase_price: int, redemption_price: int, items: array, end_date: int):
         self.uuid = uuid4().hex
         self.player0 = player_0
@@ -122,28 +136,28 @@ class PledgeReq:
         self.player1.buy(self.purchase_price)
         self.player0.sell(self.purchase_price)
         for x in self.items:
-            match x["type"]:
-                case "equipment":
-                    self.player1.equipments[x["data"].get_uuid()] = x["data"]
-                case "room":
-                    x["data"].staff_count = {
-                        "doctor": 0,
-                        "lab_assistant": 0
+            match x['type']:
+                case 'equipment':
+                    self.player1.equipments[x['data'].get_uuid()] = x['data']
+                case 'room':
+                    x['data'].staff_count = {
+                        'doctor': 0,
+                        'lab_assistant': 0
                     }
-                    eq = x["data"].get_equipment()
+                    eq = x['data'].get_equipment()
                     if eq is not None:
                         self.player0.move_equipment_from_room(eq.get_uuid())
-                    del self.player0.rooms[x["data"].get_uuid()]
+                    del self.player0.rooms[x['data'].get_uuid()]
         pass  # TODO: продаем предметы игроку 1 и получаем деньги на счет игрока 0
 
     def execute_redeem(self):  # TODO: выкупаем предметы назад и зачисляем их на счет игрока 0, деньги на счет игрока 1
         self.status = 'cancelled'
         for x in self.items:
-            match x["type"]:
-                case "equipment":
-                    self.player0.equipments[x["data"].get_uuid()] = x["data"]
-                case "room":
-                    self.player0.rooms[x["data"].get_uuid()] = x["data"]
+            match x['type']:
+                case 'equipment':
+                    self.player0.equipments[x['data'].get_uuid()] = x['data']
+                case 'room':
+                    self.player0.rooms[x['data'].get_uuid()] = x['data']
         self.player0.buy(self.redemption_price)
         self.player1.sell(self.redemption_price)
 
@@ -152,8 +166,8 @@ class PledgeReq:
             del self.player0.pledges[self.uuid]
             del self.player1.pledges[self.uuid]
             for x in self.items:
-                match x["type"]:
-                    case "equipment":
-                        self.player1.equipments[x["data"].get_uuid()] = x["data"]
-                    case "room":
-                        self.player1.rooms[x["data"].get_uuid()] = x["data"]
+                match x['type']:
+                    case 'equipment':
+                        self.player1.equipments[x['data'].get_uuid()] = x['data']
+                    case 'room':
+                        self.player1.rooms[x['data'].get_uuid()] = x['data']

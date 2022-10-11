@@ -1,16 +1,20 @@
+import copy
+import json
 from uuid import uuid4
 
 
 class Order(object):
+    def generate_dict(self):
+        return self.__dict__
 
     def __init__(self, color, owner_uuid):
         self.ownerUuid = owner_uuid
         self.color = color
         self.uuid = uuid4().hex
         self.complite = {
-            "pre_analytic": False,
-            "analytic": False,
-            "reporting": False
+            'pre_analytic': False,
+            'analytic': False,
+            'reporting': False
         }
 
     def get_uuid(self):
@@ -26,4 +30,4 @@ class Order(object):
         return self.complite
 
     def is_complite(self):
-        return self.complite["pre_analytic"] and self.complite["analytic"] and self.complite["reporting"]
+        return self.complite['pre_analytic'] and self.complite['analytic'] and self.complite['reporting']

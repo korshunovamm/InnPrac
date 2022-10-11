@@ -79,10 +79,10 @@ class StaticBaseParams(unittest.TestCase):
 
 # class Staff(unittest.TestCase):
 #     def test_buy_staff(self):
-#         game = Game()
-#         pl = game.new_lab("Игрок", "Пароль")
-#         ro = game.buy_room(pl.get_uuid())
+#         manage_game = Game()
+#         pl = manage_game.new_lab("Игрок", "Пароль")
+#         ro = manage_game.buy_room(pl.get_uuid())
 #         print(pl.money)
 #         for x in range(10):
-#             game.buy_staff(4, ro.get_staff_count()["lab_assistant"])
+#             manage_game.buy_staff(4, ro.get_staff_count()["lab_assistant"])
 #         self.assertEqual(106, pl.get_money())

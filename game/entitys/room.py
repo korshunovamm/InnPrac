@@ -1,16 +1,24 @@
+import copy
+import inspect
+import json
 from uuid import uuid4
 
 from game.entitys.equipment import Equipment
 
 
-class Room():
+class Room:
+    def generate_dict(self):
+        ret = copy.copy(self.__dict__)
+        if self.equipment is not None:
+            ret['equipment'] = self.equipment.generate_dict()
+        return ret
 
     def __init__(self):
         self.uuid = uuid4().hex
         self.equipment = None
         self.staff_count = {
-            "doctor": 0,
-            "lab_assistant": 0
+            'doctor': 0,
+            'lab_assistant': 0
         }
 
     # статические параметры комнаты
@@ -29,8 +37,8 @@ class Room():
     @staticmethod
     def get_max_staff():
         return {
-            "doctor": 4,
-            "lab_assistant": 4
+            'doctor': 4,
+            'lab_assistant': 4
         }
 
     def get_uuid(self):
@@ -71,13 +79,13 @@ class Room():
         ret: int = self.get_base_reputation()
         if self.equipment is not None:
             ret += self.equipment.calc_reputation()
-        ret += self.staff_count["doctor"] + self.staff_count["lab_assistant"]
+        ret += self.staff_count['doctor'] + self.staff_count['lab_assistant']
         return ret
 
     def get_expenses(self):
         ret: int = self.get_base_expenses()
         # если оборудование есть, то добавляем его расходы
-        ret += self.staff_count["doctor"] * 2 + self.staff_count["lab_assistant"]
+        ret += self.staff_count['doctor'] * 2 + self.staff_count['lab_assistant']
         if self.equipment is not None:
             ret += self.equipment.get_expenses()
         return ret
