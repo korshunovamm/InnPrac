@@ -154,21 +154,20 @@ class Game(object):
         lab: Player = self.labs[lab_uuid]
         equipment_info = json.loads(read_file('data/equipments.json'))[eq_type]
         amount: int = self.equipments[eq_type]
-        if eq_type != 'reporting' and eq_type != 'pre_analytic':
+        if eq_type not in['reporting', 'pre_analytic']:
             amount: int = amount[eq_color]
         if amount > 0 and self.stage == 1 and lab.can_buy_equipment(equipment_info):
-            if eq_type != 'reporting' and eq_type != 'pre_analytic':
+            if eq_type not in['reporting', 'pre_analytic']:
                 self.equipments[eq_type][eq_color] -= 1
             else:
                 self.equipments[eq_type] -= 1
-            eq = lab.buy_equipment(eq_type, eq_color)
-            if eq is not False:
-                if credit and self.credits > 0:
-                    self.credits -= 1
-                    lab.buy(equipment_info['price'], credit)
-                    return True, eq
-                else:
-                    return False, None
+            if credit and self.credits > 0 or not credit:
+                eq = lab.buy_equipment(eq_type, eq_color)
+                self.credits -= 1
+                lab.buy(equipment_info['price'], credit)
+                return True, eq
+            else:
+                return False, None
         else:
             return False, None
 
@@ -196,14 +195,15 @@ class Game(object):
 
     # купить сервисы
 
-    def buy_lis(self, lab_uuid, ro_uuid):
+    def buy_lis(self, lab_uuid, eq_uuid):
         lab = self.labs[lab_uuid]
-        eq = lab.get_rooms()[ro_uuid].get_equipment()
-        if eq is not None:
-            if lab.get_money() >= eq.get_lis_price() and eq.can_buy_lis():
-                lab.buy(eq.get_lis_price())
-                eq.buy_lis()
-                return True
+        if self.stage == 1 and lab.can_buy_lis(eq_uuid):
+            eq = lab.get_equipment(eq_uuid)
+            eq.buy_lis()
+            return True, eq
+        else:
+            return False, None
+
 
     def buy_service_contract(self, pl_uuid, eq_uuid):
         if self.stage == 1:
@@ -212,18 +212,19 @@ class Game(object):
     # купить персонал
     def buy_staff(self, pl_uuid, ro_uuid, staff_type):
         if self.stage == 1 and self.staff[staff_type] > 0:
-            if self.labs[pl_uuid].buy_staff(ro_uuid, staff_type):
+            pl = self.labs[pl_uuid]
+            if pl.buy_staff(ro_uuid, staff_type):
                 self.staff[staff_type] -= 1
-                return True
+                return True, pl.get_room(ro_uuid)
             else:
-                return False
+                return False, None
         else:
-            return False
+            return False, None
 
     # продать персонал
     def sell_staff(self, lab_uuid, ro_uuid, staff_type):
         if self.stage == 1:
-            self.labs[lab_uuid].get_rooms()[ro_uuid].remove_staff(staff_type)
+            self.labs[lab_uuid].get_room(ro_uuid).remove_staff(staff_type)
             self.staff[staff_type] += 1
             return True
         else:

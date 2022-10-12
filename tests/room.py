@@ -10,7 +10,7 @@ class Buy(unittest.TestCase):
 
     def test_rooms_count_ok(self):  # купить до 10 помещений
         game = Game()
-        pl = game.new_lab("Игрок", "Пароль")
+        pl = game.new_lab()
         ro_count = random.randint(1, 10)
         for i in range(ro_count):
             game.buy_room(pl.get_uuid())
@@ -20,7 +20,7 @@ class Buy(unittest.TestCase):
 
     def test_room_buy(self):  # купить слишком много помещений
         game = Game()
-        pl = game.new_lab("Игрок", "Пароль")
+        pl = game.new_lab()
         pl.money = 1000
         ro_count = random.randint(1, 10) + 60
         for i in range(ro_count):
@@ -31,9 +31,9 @@ class Buy(unittest.TestCase):
 
     def test_room_buy_2pl(self):
         game = Game()
-        pl = game.new_lab("Игрок", "Пароль")
+        pl = game.new_lab()
         pl.money = inf
-        pl2 = game.new_lab("Игрок2", "Пароль")
+        pl2 = game.new_lab()
         pl2.money = inf
         ro_count1 = random.randint(1, 10)
         for i in range(ro_count1):
@@ -49,11 +49,11 @@ class Buy(unittest.TestCase):
 class Sell(unittest.TestCase):
     def test_sell_room(self):
         game = Game()
-        pl = game.new_lab("Игрок", "Пароль")
+        pl = game.new_lab()
         ro_count = random.randint(1, 10)
         res = True
         for x in range(ro_count):
-            ro = game.buy_room(pl.get_uuid())
+            ro = game.buy_room(pl.get_uuid())[1]
             r = game.sell_room(pl.get_uuid(), ro.get_uuid())
             if r is False:
                 res = False
@@ -80,7 +80,7 @@ class StaticBaseParams(unittest.TestCase):
 # class Staff(unittest.TestCase):
 #     def test_buy_staff(self):
 #         manage_game = Game()
-#         pl = manage_game.new_lab("Игрок", "Пароль")
+#         pl = manage_game.new_lab()
 #         ro = manage_game.buy_room(pl.get_uuid())
 #         print(pl.money)
 #         for x in range(10):
