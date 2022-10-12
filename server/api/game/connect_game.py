@@ -54,6 +54,16 @@ class ConnectToGame(websocket.WebSocketHandler):
         "buy_training_service": {
             "need_data": False,
             "action": player.buy_training_service
+        },
+        "buy_service_contract": {
+            "need_data": True,
+            "action": equipment.buy_service_contract,
+            "required_data": [{"name": "eq_uuid", "optional": False}]
+        },
+        "buy_service_maintenance": {
+            "need_data": True,
+            "action": equipment.buy_service_maintenance,
+            "required_data": [{"name": "eq_uuid", "optional": False}]
         }
     }
 

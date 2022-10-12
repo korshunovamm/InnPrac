@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from game.entitys.events import Events
 from game.player import Player
-from game.deal import TradeReq, PledgeReq
+from game.deal import TradeReq, PledgeReq, PledgeBank
 
 
 def read_file(path: str):
@@ -33,6 +33,7 @@ class Game(object):
     # конструктор игры
     def __init__(self):
         self.pledges = {}  # залоги игроков TODO: при переходе с 2 на 1 стадию, проверяем что они не просрочены и не отменены
+        self.bank_pledges = {}  # залоги в банке TODO: при переходе с 2 на 1 стадию, проверяем что они не просрочены и не отменены
         self.credits = 12
         self.day: int = 1
         self.stage: int = 1
@@ -209,6 +210,9 @@ class Game(object):
         if self.stage == 1:
             return self.labs[pl_uuid].buy_service_contract(eq_uuid)
 
+    def buy_service_maintenance(self, pl_uuid, eq_uuid):
+        if self.stage == 1:
+            return self.labs[pl_uuid].buy_service_maintenance(eq_uuid)
     # купить персонал
     def buy_staff(self, pl_uuid, ro_uuid, staff_type):
         if self.stage == 1 and self.staff[staff_type] > 0:
@@ -263,6 +267,14 @@ class Game(object):
         if self.stage == 1:
             trade = PledgeReq(self.labs[pl_0_uuid], purchase_price, redemption_price, items, self.day + duration)
             self.labs[pl_1_uuid].pleadges = trade
+            return True
+        else:
+            return False
+
+    def new_bank_pledge(self, pl_uuid, items):
+        if self.stage == 1:
+            pledge = PledgeBank(self.labs[pl_uuid], items, self.day + 1)
+            self.bank_pledges[pledge.get_uuid()] = pledge
             return True
         else:
             return False

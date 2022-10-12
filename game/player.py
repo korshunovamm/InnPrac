@@ -272,9 +272,19 @@ class Player(object):
         if eq is not None:
             if eq.get_service_contract_price() < self.money and eq.can_buy_service_contract():
                 self.buy(eq.buy_service_contract())
-                return True
-            return False
-        return False
+                return True, eq
+            return False, None
+        return False, None
+
+    def buy_service_maintenance(self, eq_uuid):
+        eq = self.get_equipment(eq_uuid)
+        if eq is not None:
+            if eq.get_repair_price() < self.money and eq.is_broken():
+                eq.repair_it()
+                self.buy(eq.get_repair_price())
+                return True, eq
+            return False, None
+        return False, None
 
     def can_buy_lis(self, eq_uuid: str):
         eq = self.get_equipment(eq_uuid)

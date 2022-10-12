@@ -1,6 +1,5 @@
 import array
 import copy
-import json
 from uuid import uuid4
 
 
@@ -171,3 +170,74 @@ class PledgeReq:
                         self.player1.equipments[x['data'].get_uuid()] = x['data']
                     case 'room':
                         self.player1.rooms[x['data'].get_uuid()] = x['data']
+
+
+class PledgeBank:
+    def generate_dict(self):
+        ret = copy.copy(self.__dict__)
+        ret['player'] = self.player.get_uuid()
+        return ret
+
+    def __init__(self, player, items, end_date):
+        self.uuid = uuid4().hex
+        self.player = player
+        self.items = items
+        self.end_date = end_date
+        self.price = 0
+        for x in self.items:
+            match x['type']:
+                case 'equipment':
+                    eq = self.player.get_equipment(x['data'])
+                    if x['data'] in self.player.equipments:
+                        del self.player.equipments[x['data']]
+                    else:
+                        del self.player.equipments_rooms[x['data']]
+                    x['data'] = eq
+                case 'room':
+                    x['data'] = self.player.rooms[x['data']]
+                    if x['data'].get_equipment() is not None:
+                        self.player.move_equipment_from_room(x['data'].get_equipment().get_uuid())
+                    del self.player.rooms[x['data'].get_uuid()]
+                    x['data'].staff_count = {
+                        'doctor': 0,
+                        'lab_assistant': 0
+                    }
+            self.price += int(round(x['data'].get_price() / 2))
+        self.status = 'in_bank'
+
+    def get_uuid(self):
+        return self.uuid
+
+    def get_status(self):
+        return self.status
+
+    def purchase(self):
+        if self.player.get_money() > self.price and self.status == 'in_bank':
+            self.player.buy(self.price)
+            for x in self.items:
+                match x['type']:
+                    case 'equipment':
+                        self.player.equipments[x['data'].get_uuid()] = x['data']
+                    case 'room':
+                        self.player.rooms[x['data'].get_uuid()] = x['data']
+            self.status = 'purchased'
+            return True
+        else:
+            return False
+
+    def pick_deposit(self, game):
+        if self.status == 'in_bank':
+            for x in self.items:
+                match x['type']:
+                    case 'equipment':
+                        if x['data'].get_type() in ['pre_analytic', 'reporting']:
+                            game.equipments[x['data'].get_type()] += 1
+                        else:
+                            game.equipments[x['data'].get_type()][x['data'].get_color()] += 1
+                    case 'room':
+                        game.rooms += 1
+            self.status = 'picked_deposit'
+            return True
+        else:
+            return False
+
