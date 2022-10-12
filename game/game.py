@@ -223,12 +223,13 @@ class Game(object):
 
     # продать персонал
     def sell_staff(self, lab_uuid, ro_uuid, staff_type):
-        if self.stage == 1:
+        ro = self.labs[lab_uuid].get_room(ro_uuid)
+        if self.stage == 1 and ro is not None and ro.get_staff()[staff_type] > 0:
             self.labs[lab_uuid].get_room(ro_uuid).remove_staff(staff_type)
             self.staff[staff_type] += 1
-            return True
+            return True, ro
         else:
-            return False
+            return False, None
 
     # взаимодействие игроков
     # новая сделка

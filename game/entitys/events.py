@@ -74,7 +74,7 @@ class Event:  # Event class
     def action7(pl):
         rooms = pl.get_rooms().values()
         for x in rooms:
-            if x.get_staff_count()["lab_assistant"] > 0:
+            if x.get_staff()["lab_assistant"] > 0:
                 x.staff_count["lab_assistant"] -= 1
                 return
 
@@ -150,7 +150,7 @@ class Event:  # Event class
     def action17(pl):
         rooms = pl.get_rooms().values()
         for x in rooms:
-            if x.get_staff_count()["doctor"] > 0:
+            if x.get_staff()["doctor"] > 0:
                 x.staff_count["doctor"] -= 1
                 return
 

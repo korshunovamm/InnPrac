@@ -2,6 +2,7 @@ import json
 
 from tornado import websocket
 
+from server.api.game.actions import player
 from server.api.game.actions.entitys import room, equipment
 from server.api.users.login.auth import get_user_info
 from server.mongoDB import GameMongo
@@ -35,6 +36,24 @@ class ConnectToGame(websocket.WebSocketHandler):
             "need_data": True,
             "action": equipment.buy_lis,
             "required_data": [{"name": "eq_uuid", "optional": False}]
+        },
+        "buy_staff": {
+            "need_data": True,
+            "action": room.buy_staff,
+            "required_data": [{"name": "ro_uuid", "optional": False}, {"name": "st_type", "optional": False}]
+        },
+        "sell_staff": {
+            "need_data": True,
+            "action": room.sell_staff,
+            "required_data": [{"name": "ro_uuid", "optional": False}, {"name": "st_type", "optional": False}]
+        },
+        "buy_logistic_service": {
+            "need_data": False,
+            "action": player.buy_logistic_service
+        },
+        "buy_training_service": {
+            "need_data": False,
+            "action": player.buy_training_service
         }
     }
 

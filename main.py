@@ -3,8 +3,8 @@ from game.game import Game
 
 # fullgame.main()
 game: Game = Game()
-pl = game.new_lab("Игрок", "Пароль")
-ro = game.buy_room(pl.get_uuid())
+pl = game.new_lab()
+ro = game.buy_room(pl.get_uuid())[1]
 game.buy_staff(pl.get_uuid(), ro.get_uuid(), "lab_assistant")
 ro = game.buy_room(pl.get_uuid())
 game.buy_staff(pl.get_uuid(), ro.get_uuid(), "lab_assistant")

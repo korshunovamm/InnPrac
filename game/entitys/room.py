@@ -57,7 +57,7 @@ class Room:
 
     # врачи и лаборанты
 
-    def get_staff_count(self):
+    def get_staff(self):
         return self.staff_count
 
     def add_staff(self, ro_type):

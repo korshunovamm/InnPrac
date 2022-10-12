@@ -89,9 +89,6 @@ class Player(object):
         self.promotion = params
         self.dataIsReady = True
 
-    def get_ads_params(self):
-        return self.promotion
-
     def get_credit(self):
         return self.credit
 
@@ -174,6 +171,18 @@ class Player(object):
 
     def get_orders(self):
         return self.orders
+
+    def buy_logistic_service(self):
+        if self.buy(5) and not self.services['logistic']:
+            self.services['logistic'] = True
+            return True
+        return False
+
+    def buy_training_service(self):
+        if self.buy(5) and not self.services['training']:# TODO: сделать цену
+            self.services['training'] = True
+            return True
+        return False
 
     # помещения лаборатории
     def can_buy_room(self):
@@ -267,9 +276,6 @@ class Player(object):
             return False
         return False
 
-    def sell_service_contract(self, eq_uuid: str):
-        pass
-
     def can_buy_lis(self, eq_uuid: str):
         eq = self.get_equipment(eq_uuid)
         if eq is not None and eq.get_lis_price() < self.money and eq.can_buy_lis():
@@ -300,8 +306,8 @@ class Player(object):
     def move_staff(self, ro_uuid_from: str, ro_uuid_to, staff_type: str):
         ro_from = self.rooms[ro_uuid_from]
         ro_to = self.rooms[ro_uuid_to]
-        if ro_from.get_staff_count()[staff_type] > 0 and \
-                ro_to.get_staff_count()[staff_type] < ro_to.get_max_staff()[staff_type]:
+        if ro_from.get_staff()[staff_type] > 0 and \
+                ro_to.get_staff()[staff_type] < ro_to.get_max_staff()[staff_type]:
             ro_from.remove_staff(staff_type)
             ro_to.add_staff(staff_type)
             return True
