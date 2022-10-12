@@ -20,3 +20,12 @@ def sell(websocket, data):
             return {"result": "error", "message": "Equipment not sold"}
     else:
         return {"result": "error", "message": "Game not found"}
+
+
+def buy_lis(websocket, data):
+    game = websocket.game
+    res = game.buy_lis(websocket.pl_uuid, data["eq_uuid"])
+    if res[0]:
+        return {"result": "ok", "message": "LIS bought", "data": res[1].generate_dict()}
+    else:
+        return {"result": "error", "message": "LIS not bought"}

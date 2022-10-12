@@ -30,6 +30,11 @@ class ConnectToGame(websocket.WebSocketHandler):
             "need_data": True,
             "action": equipment.sell,
             "required_data": [{"name": "eq_uuid", "optional": False}]
+        },
+        "buy_lis": {
+            "need_data": True,
+            "action": equipment.buy_lis,
+            "required_data": [{"name": "eq_uuid", "optional": False}]
         }
     }
 
@@ -54,12 +59,11 @@ class ConnectToGame(websocket.WebSocketHandler):
             self.close(1007, "Invalid request, you are not logged in")
 
     def on_message(self, message):
-        # try:
+        try:
             msg_json = json.loads(message)
             if msg_json.get("type") == "action" and "action" in msg_json:
                 if msg_json["action"] in self.actions:
-                    if "data" in msg_json or self.check_data(msg_json["action"], msg_json.get("data")) or not \
-                            self.actions[msg_json["action"]]["need_data"]:
+                    if self.check_data(msg_json["action"], msg_json.get("data")):
                         msg_write = self.actions[msg_json["action"]]["action"](self, msg_json.get("data", None))
                         if msg_write['result'] == "ok":
                             GameMongo.update_game(self.game)
@@ -71,8 +75,8 @@ class ConnectToGame(websocket.WebSocketHandler):
                     self.write_message({"type": "error", "message": "Invalid action"})
             else:
                 self.write_message({"type": "error", "message": "Invalid message type"})
-        # except Exception as e:
-        #     self.write_message({"type": "error", "error": str(e)})
+        except Exception as e:
+            self.write_message({"type": "error", "error": str(e)})
 
     def on_close(self):
         print("WebSocket closed")
@@ -81,11 +85,11 @@ class ConnectToGame(websocket.WebSocketHandler):
     def check_data(action, data):
         if action in ConnectToGame.actions:
             if ConnectToGame.actions[action]["need_data"]:
-                for i in ConnectToGame.actions[action]["required_data"]:
-                    if not i["optional"] and i["name"] not in data:
-                        return False
-                return True
-            else:
-                return True
-        else:
-            return False
+                if data is not None:
+                    for i in ConnectToGame.actions[action]["required_data"]:
+                        if not i["optional"] and i["name"] not in data:
+                            return False
+                    return True
+                return False
+            return True
+        return False

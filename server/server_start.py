@@ -6,8 +6,7 @@ from server.routes import setup_routers
 
 
 async def main():
-    data = load(open('configs/api.yaml'), Loader=Loader)
-    app = tornado.web.Application(cookie_secret=data["cookie_secret"])
+    app = tornado.web.Application()
     setup_routers(app)
     app.listen(8888)
     await asyncio.Event().wait()
