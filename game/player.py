@@ -1,14 +1,10 @@
 import copy
-import inspect
 import json
 import random
-from hashlib import sha256
 from uuid import uuid4
 
-from game.deal import TradeReq, PledgeReq
 from game.entitys.equipment import Equipment
 from game.entitys.order import Order
-from game.entitys.powerUnit import PowerUnit
 from game.entitys.room import Room
 
 
@@ -35,6 +31,7 @@ class Player(object):
         for x in self.pledges:
             ret['pledges'][x] = self.pledges[x].generate_dict()
         return ret
+
     # конструктор
     def __init__(self):
         # динамичные параметры игрока
@@ -191,6 +188,8 @@ class Player(object):
     def get_rooms(self):
         return self.rooms
 
+    def get_room(self, uuid):
+        return self.rooms.get(uuid)
     def sell_room(self, room_uuid) -> bool:
         if room_uuid in self.rooms:
             self.sell(round(self.rooms[room_uuid].get_price() / 2, 0))
@@ -221,8 +220,8 @@ class Player(object):
             del self.equipments[eq_uuid]
             return True, eq.get_type(), eq.get_color()
         elif eq_uuid in self.equipments_rooms:
-            self.sell(round(self.equipments_rooms[eq_uuid].get_price() / 2, 0))
             eq = self.rooms[self.equipments_rooms[eq_uuid]].get_equipment()
+            self.sell(round(self.equipments_rooms[eq_uuid].get_price() / 2, 0))
             self.rooms[self.equipments_rooms[eq_uuid]].set_equipment(None)
             del self.equipments_rooms[eq_uuid]
             return True, eq.get_type(), eq.get_color()
@@ -230,7 +229,7 @@ class Player(object):
             return False
 
     def move_equipment_to_room(self, eq_uuid: str, ro_uuid: str):
-        if eq_uuid in self.equipments.keys() and self.rooms[ro_uuid].get_equipment() is None:
+        if eq_uuid in self.equipments and self.rooms[ro_uuid].get_equipment() is None:
             self.equipments[eq_uuid].set_room(self.rooms[ro_uuid])
             self.rooms[ro_uuid].set_equipment(self.equipments[eq_uuid])
             self.equipments_rooms[eq_uuid] = ro_uuid
@@ -251,36 +250,34 @@ class Player(object):
         else:
             return False
 
-    # купить оборудование
-    def buy_service_contract(self, eq_uuid: str):
+    def get_equipment(self, eq_uuid: str):
         if eq_uuid in self.equipments:
-            eq = self.equipments[eq_uuid]
+            return self.equipments[eq_uuid]
+        elif eq_uuid in self.equipments_rooms:
+            return self.rooms[self.equipments_rooms[eq_uuid]].get_equipment()
         else:
-            eq = self.equipments_rooms[eq_uuid]
+            return None
+
+    def buy_service_contract(self, eq_uuid: str):
+        eq = self.get_equipment(eq_uuid)
         if eq is not None:
             if eq.get_service_contract_price() < self.money and eq.can_buy_service_contract():
                 self.buy(eq.buy_service_contract())
                 return True
-            else:
-                return False
+            return False
+        return False
 
     def sell_service_contract(self, eq_uuid: str):
         pass
 
-    def buy_lis(self, eq_uuid: str):
-        if eq_uuid in self.equipments:
-            eq = self.equipments[eq_uuid]
-        else:
-            eq = self.equipments_rooms[eq_uuid]
-        if eq is not None:
-            if eq.get_lis_price() < self.money and eq.can_buy_lis():
-                self.buy(eq.buy_lis())
-                return True
-            else:
-                return False
+    def can_buy_lis(self, eq_uuid: str):
+        eq = self.get_equipment(eq_uuid)
+        if eq is not None and eq.get_lis_price() < self.money and eq.can_buy_lis():
+            return True
+        return False
 
-    def repair_equipment(self, ro_uuid):
-        eq = self.rooms[ro_uuid].get_equipment()
+    def repair_equipment(self, eq_uuid: str):
+        eq = self.get_equipment(eq_uuid)
         if eq['state'] == 'broken' and self.money >= eq.get_repair_price():
             self.money -= eq.get_repair_price()
             eq.repair_it()
@@ -289,7 +286,7 @@ class Player(object):
 
     # купить персонал
     def buy_staff(self, ro_uuid: str, staff_type: str):
-        ro = self.rooms[ro_uuid]
+        ro = self.get_room(ro_uuid)
         staff_info = json.loads(read_file('data/staff.json'))[staff_type]
         if self.money >= staff_info['price'] and \
                 ro.get_staff_count()[staff_type] < ro.get_max_staff()[staff_type]:
@@ -314,11 +311,7 @@ class Player(object):
     # купить реагенты
 
     def buy_reagents(self, eq_uuid: str, amount: int):
-        if eq_uuid in self.equipments:
-            eq = self.equipments[eq_uuid]
-        else:
-            eq = self.rooms[self.equipments_rooms[eq_uuid]].get_equipment()
-
+        eq = self.get_equipment(eq_uuid)
         if eq is not None and self.money >= eq.get_reagent_price() * amount:
             if eq.can_buy_reagents(amount):
                 eq.buy_reagents(amount)
