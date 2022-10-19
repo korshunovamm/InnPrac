@@ -64,7 +64,38 @@ class ConnectToGame(websocket.WebSocketHandler):
             "need_data": True,
             "action": equipment.buy_service_maintenance,
             "required_data": [{"name": "eq_uuid", "optional": False}]
+        },
+        "new_bank_deposit": {
+            "need_data": True,
+            "action": player.new_bank_deposit,
+            "required_data": [{"name": "items", "optional": False}]
+        },
+        "redeem_bank_pledge": {
+            "need_data": True,
+            "action": player.redeem_bank_deposit,
+            "required_data": [{"name": "plg_uuid", "optional": False}]
+        },
+        "new_deal": {
+            "need_data": True,
+            "action": player.new_deal,
+            "required_data": [{"name": "my_trade_items", "optional": False},
+                              {'name': "partner_uuid", "optional": False}, {'name': "partner_items", "optional": False}]
+        },
+        "set_orders_input": {
+            "need_data": True,
+            "action": player.set_orders_input,
+            "required_data": [{"name": "order_colors", "optional": False}]
+        },
+        "set_ads_options": {
+            "need_data": True,
+            "action": player.set_ads_options,
+            "required_data": [{"name": "ads_options", "optional": False}]
         }
+        # "new_pledge": {
+        #     "need_data": True,
+        #     "action": player.new_pledge,
+        #     "required_data": []
+        # }
     }
 
     def open(self):
@@ -96,6 +127,7 @@ class ConnectToGame(websocket.WebSocketHandler):
                         msg_write = self.actions[msg_json["action"]]["action"](self, msg_json.get("data", None))
                         if msg_write['result'] == "ok":
                             GameMongo.update_game(self.game)
+                            self.send_update(self.game.get_uuid(), self.pl_uuid)
                             msg_write['game'] = self.game.generate_dict()
                         self.write_message(msg_write)
                     else:
@@ -108,7 +140,8 @@ class ConnectToGame(websocket.WebSocketHandler):
             self.write_message({"type": "error", "error": str(e)})
 
     def on_close(self):
-        print("WebSocket closed")
+        if self.game.get_uuid() in connections:
+            connections[self.game.get_uuid()].remove(self)
 
     @staticmethod
     def check_data(action, data):
@@ -122,3 +155,10 @@ class ConnectToGame(websocket.WebSocketHandler):
                 return False
             return True
         return False
+
+    @staticmethod
+    def send_update(game_uuid, pl_uuid):
+        if game_uuid in connections:
+            for i in connections[game_uuid]:
+                if i.pl_uuid != pl_uuid:
+                    i.write_message({"type": "update", "game": GameMongo.get_game(game_uuid).generate_dict()})

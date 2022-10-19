@@ -11,6 +11,7 @@ from server.mongoDB import UserMongo
 
 class Authorization(tornado.web.RequestHandler):
     def post(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
         if not self.get_cookie("user"):
             if "login" in self.request.body_arguments and "password" in self.request.body_arguments:
                 data = self.request.body_arguments
@@ -24,7 +25,7 @@ class Authorization(tornado.web.RequestHandler):
                         jwt_text = jwt.encode({"login": data['login'][0].decode('utf-8'),
                                                "exp": str(int(round(datetime.now().timestamp())) + 2629743)},
                                               config["jwt_secret"], algorithm="HS256")
-                        self.set_cookie("user", jwt_text)
+                        self.set_cookie("user", jwt_text, httponly=True)
                         self.write({'status': 'ok', 'message': 'User authorized'})
                         self.set_status(200)
                     else:
@@ -48,6 +49,9 @@ def get_user_info(jwt_text):
     try:
         login = jwt.decode(jwt_text, load(open('configs/api.yaml'), Loader=Loader)["jwt_secret"], algorithms=["HS256"])[
             "login"]
-        return True, UserMongo.get_user(login)
-    except:
+        user = UserMongo.get_user(login)
+        if user:
+            return True, user
+        return False, None
+    except Exception as e:
         return False

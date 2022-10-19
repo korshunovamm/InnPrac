@@ -1,11 +1,10 @@
 import copy
-import inspect
 import json
 from uuid import uuid4
 
 from game.entitys.events import Events
 from game.player import Player
-from game.deal import TradeReq, PledgeReq, PledgeBank
+from game.deal import TradeReq, PledgeReq
 
 
 def read_file(path: str):
@@ -19,6 +18,12 @@ class Game(object):
     def get_uuid(self):
         return self.uuid
 
+    def get_name(self):
+        return self.name
+
+    def get_status(self):
+        return self.status
+
     max_pl_count: int = 6
 
     def generate_dict(self):
@@ -27,11 +32,12 @@ class Game(object):
         for x in self.labs:
             ret['labs'][x] = self.labs[x].generate_dict()
         del ret['pledges']
-        del ret['events']
+        del ret['bank_pledges']
+        del ret['events_deck']
         return ret
 
     # конструктор игры
-    def __init__(self):
+    def __init__(self, name: str):
         self.pledges = {}  # залоги игроков TODO: при переходе с 2 на 1 стадию, проверяем что они не просрочены и не отменены
         self.bank_pledges = {}  # залоги в банке TODO: при переходе с 2 на 1 стадию, проверяем что они не просрочены и не отменены
         self.credits = 12
@@ -39,7 +45,7 @@ class Game(object):
         self.stage: int = 1
         self.uuid: str = uuid4().hex
         self.labs = {}
-        self.events = Events()
+        self.events_deck = Events()
         self.rooms: int = 60
         self.equipments: object = {
             'hand': {
@@ -73,6 +79,7 @@ class Game(object):
             'doctor': 120,
             'lab_assistant': 120
         }
+        self.name: str = name
         self.status = 'waiting'
 
     # кол-во людей в игре
@@ -87,6 +94,8 @@ class Game(object):
         if len(self.labs) < self.max_pl_count:
             pl = Player()
             self.labs[pl.get_uuid()] = pl
+            if len(self.labs) == self.max_pl_count:
+                self.status = 'full'
             return pl
         else:
             return False
@@ -94,46 +103,71 @@ class Game(object):
     def transition_to_stage_2(self):
         if self.stage == 1:
             self.stage = 2
-            for lab in self.labs.values():
-                lab.transition_to_stage_2()
+            # for lab in self.labs:
+            #     ev = self.events_deck.get_event()
+            #     lab.last_event = ev
+            #     if ev.get_input_type() == 'nothing':
+            #         ev.action()
+            #     elif ev.get_input_type() == 'ga':
+            #         ev.action(self)
+            #     elif ev.get_input_type() == 'pl':
+            #         ev.action(lab)
+            #     else:
+            #         ev.action(self, lab)
+            for x in self.labs:
+                rep = self.labs[x].CalcReputation()
+                if rep < 10:
+                    order_level = 0
+                elif rep < 20:
+                    order_level = 1
+                elif rep < 30:
+                    order_level = 2
+                elif rep < 40:
+                    order_level = 3
+                else:
+                    order_level = 4
+                self.labs[x].calc_orders_count(order_level)
 
-    # def newStage(self):
-    #     sum = 0
-    #     for lab in self.labs:
-    #         sum += lab.IsReady()
-    #     if sum == len(self.labs):
-    #         if self.stage == 1:
-    #             self.stage = 2
-    #             for x in self.labs:
-    #                 rep = x.CalcReputation()
-    #                 if rep < 10:
-    #                     orderLevel = 0
-    #                 elif rep < 20:
-    #                     orderLevel = 1
-    #                 elif rep < 30:
-    #                     orderLevel = 2
-    #                 elif rep < 40:
-    #                     orderLevel = 3
-    #                 else:
-    #                     orderLevel = 4
-    #                 x.CalcOrdersCount(orderLevel)
-    #         else:
-    #             self.day += 1
-    #             self.stage = 1
-    #             for x in self.labs:
-    #                 x.NewDay()
-    #                 rep = self.labs[x].CalcReputation()
-    #                 if rep < 10:
-    #                     orderLevel = 0
-    #                 elif rep < 20:
-    #                     orderLevel = 1
-    #                 elif rep < 30:
-    #                     orderLevel = 2
-    #                 elif rep < 40:
-    #                     orderLevel = 3
-    #                 else:
-    #                     orderLevel = 4
-    #                 x.CalcOrdersCount(orderLevel)
+        else:
+            return False
+
+    def new_stage(self):
+        res = 0
+        for lab in self.labs:
+            res += lab.IsReady()
+        if res == len(self.labs):
+            if self.stage == 1:
+                self.stage = 2
+                for x in self.labs:
+                    rep = x.CalcReputation()
+                    if rep < 10:
+                        order_level = 0
+                    elif rep < 20:
+                        order_level = 1
+                    elif rep < 30:
+                        order_level = 2
+                    elif rep < 40:
+                        order_level = 3
+                    else:
+                        order_level = 4
+                    x.CalcOrdersCount(order_level)
+            else:
+                self.day += 1
+                self.stage = 1
+                for x in self.labs:
+                    x.NewDay()
+                    rep = self.labs[x].CalcReputation()
+                    if rep < 10:
+                        order_level = 0
+                    elif rep < 20:
+                        order_level = 1
+                    elif rep < 30:
+                        order_level = 2
+                    elif rep < 40:
+                        order_level = 3
+                    else:
+                        order_level = 4
+                    x.CalcOrdersCount(order_level)
 
     # купить комнату
     def buy_room(self, lab_uuid: str):
@@ -155,10 +189,10 @@ class Game(object):
         lab: Player = self.labs[lab_uuid]
         equipment_info = json.loads(read_file('data/equipments.json'))[eq_type]
         amount: int = self.equipments[eq_type]
-        if eq_type not in['reporting', 'pre_analytic']:
+        if eq_type not in ['reporting', 'pre_analytic']:
             amount: int = amount[eq_color]
         if amount > 0 and self.stage == 1 and lab.can_buy_equipment(equipment_info):
-            if eq_type not in['reporting', 'pre_analytic']:
+            if eq_type not in ['reporting', 'pre_analytic']:
                 self.equipments[eq_type][eq_color] -= 1
             else:
                 self.equipments[eq_type] -= 1
@@ -205,7 +239,6 @@ class Game(object):
         else:
             return False, None
 
-
     def buy_service_contract(self, pl_uuid, eq_uuid):
         if self.stage == 1:
             return self.labs[pl_uuid].buy_service_contract(eq_uuid)
@@ -213,7 +246,9 @@ class Game(object):
     def buy_service_maintenance(self, pl_uuid, eq_uuid):
         if self.stage == 1:
             return self.labs[pl_uuid].buy_service_maintenance(eq_uuid)
+
     # купить персонал
+
     def buy_staff(self, pl_uuid, ro_uuid, staff_type):
         if self.stage == 1 and self.staff[staff_type] > 0:
             pl = self.labs[pl_uuid]
@@ -271,18 +306,9 @@ class Game(object):
         else:
             return False
 
-    def new_bank_pledge(self, pl_uuid, items):
-        if self.stage == 1:
-            pledge = PledgeBank(self.labs[pl_uuid], items, self.day + 1)
-            self.bank_pledges[pledge.get_uuid()] = pledge
-            return True
-        else:
-            return False
-
     # купить реагент
     def buy_reagents(self, lab_uuid, eq_uuid, amount):
         if self.stage == 1:
             return self.labs[lab_uuid].buy_reagents(eq_uuid, amount)
         else:
             return False
-    # powerUnits

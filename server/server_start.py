@@ -1,6 +1,6 @@
 import asyncio
+
 import tornado.web
-from yaml import Loader, load
 
 from server.routes import setup_routers
 
