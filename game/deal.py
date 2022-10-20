@@ -10,15 +10,27 @@ class TradeReq:
         ret['player1'] = self.player1.get_uuid()
         return ret
 
-    def __init__(self, player_0, player0_items, player1_items):
+    def __init__(self, player_0, player_1, player0_items, player1_items):
         self.uuid = uuid4().hex
         self.player0 = player_0
-        self.player1 = None
+        self.player1 = player_1
         self.player0_items = player0_items
         self.player1_items = player1_items
         self.status = 'pending'
         self.player0_status = 'accepted'
         self.player1_status = 'pending'
+        for item in self.player0_items:
+            match item['type']:
+                case 'equipment':
+                    player_0.get_equipment(item['data']).in_trade = True
+                case 'room':
+                    player_0.get_room(item['data']).in_trade = True
+        for item in self.player0_items:
+            match item['type']:
+                case 'equipment':
+                    player_0.get_equipment(item['data']).in_trade = True
+                case 'room':
+                    player_0.get_room(item['data']).in_trade = True
 
     def get_uuid(self):
         return self.uuid
@@ -176,13 +188,18 @@ class PledgeBank:
     def generate_dict(self):
         ret = copy.copy(self.__dict__)
         ret['player'] = self.player.get_uuid()
+        ret['items'] = []
+        for x in self.items:
+            ret['items'].append({
+                'type': x['type'],
+                'data': x['data'].get_uuid()
+            })
         return ret
 
-    def __init__(self, player, items, end_date):
+    def __init__(self, player, items):
         self.uuid = uuid4().hex
         self.player = player
         self.items = items
-        self.end_date = end_date
         self.price = 0
         for x in self.items:
             match x['type']:
@@ -202,6 +219,7 @@ class PledgeBank:
                         'doctor': 0,
                         'lab_assistant': 0
                     }
+            player.bank_pledges[self.uuid] = self
             self.price += int(round(x['data'].get_price() / 2))
         self.status = 'in_bank'
 
@@ -221,23 +239,6 @@ class PledgeBank:
                     case 'room':
                         self.player.rooms[x['data'].get_uuid()] = x['data']
             self.status = 'purchased'
-            return True
+            return True, self
         else:
-            return False
-
-    def pick_deposit(self, game):
-        if self.status == 'in_bank':
-            for x in self.items:
-                match x['type']:
-                    case 'equipment':
-                        if x['data'].get_type() in ['pre_analytic', 'reporting']:
-                            game.equipments[x['data'].get_type()] += 1
-                        else:
-                            game.equipments[x['data'].get_type()][x['data'].get_color()] += 1
-                    case 'room':
-                        game.rooms += 1
-            self.status = 'picked_deposit'
-            return True
-        else:
-            return False
-
+            return False, None

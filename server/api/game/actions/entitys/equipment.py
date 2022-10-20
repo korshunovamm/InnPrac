@@ -11,6 +11,8 @@ def buy(websocket, data):
             return {"result": "error", "message": "Invalid data"}
     else:
         return {"result": "error", "message": "Game not found"}
+
+
 def sell(websocket, data):
     if websocket.game is not None:
         game = websocket.game
@@ -30,6 +32,7 @@ def buy_lis(websocket, data):
     else:
         return {"result": "error", "message": "LIS not bought"}
 
+
 def buy_service_contract(websocket, data):
     game = websocket.game
     res = game.buy_service_contract(websocket.pl_uuid, data["eq_uuid"])
@@ -37,6 +40,7 @@ def buy_service_contract(websocket, data):
         return {"result": "ok", "message": "Service contract bought", "data": res[1].generate_dict()}
     else:
         return {"result": "error", "message": "Service contract not bought"}
+
 
 def buy_service_maintenance(websocket, data):
     res = websocket.game.buy_service_maintenance(websocket.pl_uuid, data["eq_uuid"])

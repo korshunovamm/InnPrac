@@ -1,14 +1,20 @@
-import tornado
+from tornado.web import RequestHandler
 
 from server.api.users.login.auth import get_user_info
+from server.mongoDB import GameMongo
 
 
-class GetUserInfo(tornado.web.RequestHandler):
-    def post(self):
+class GetUserInfo(RequestHandler):
+    def get(self):
         jwt_text = self.get_cookie("user")
         if jwt_text:
             status, user = get_user_info(jwt_text)
             if status:
+                for x in user['games']:
+                    ga = GameMongo.get_game(x)
+                    user['games'][x] = dict(uuid=x, name=ga.get_name(), status=ga.get_status())
+                del user['password']
+                del user['_id']
                 self.write({'status': 'ok', 'data': user})
                 self.set_status(200)
             else:

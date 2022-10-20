@@ -1,5 +1,3 @@
-import copy
-import inspect
 import json
 from uuid import uuid4
 
@@ -17,7 +15,6 @@ equData = json.loads(read_file('data/equipments.json'))
 
 
 class Equipment(object):
-
     def generate_dict(self):
         ret = self.__dict__
         for x in ret['power_units']:
@@ -118,7 +115,6 @@ class Equipment(object):
                     self.max_power = 4
                 elif staff['lab_assistant'] >= 3:
                     self.max_power = 6
-
                 if self.services['LIS'] and staff['lab_assistant'] >= 1:
                     self.max_power = 6
             case 'reporting':
@@ -128,29 +124,31 @@ class Equipment(object):
                     self.max_power = 4
                 elif staff['lab_assistant'] >= 3:
                     self.max_power = 6
-
-                if self.services['LIS'] and staff['lab_assistant'] >= 1:
-                    self.max_power = 10
-
+                if self.services['LIS']:
+                    self.max_power = 30
             case 'hand':
                 if staff['lab_assistant'] >= 1 and staff['doctor'] >= 3:
                     if self.services['LIS']:
                         self.max_power = 2
                     else:
                         self.max_power = 1
+                else:
+                    self.max_power = 0
             case 'semi_manual':
                 if staff['lab_assistant'] >= 2 and staff['doctor'] >= 2:
                     if self.services['LIS']:
                         self.max_power = 3
                     else:
                         self.max_power = 2
+                else:
+                    self.max_power = 0
             case 'auto':
                 if staff['lab_assistant'] >= 3 and staff['doctor'] >= 1:
+                    self.max_power = 3
                     if self.services['LIS']:
-                        self.max_power = 4
-                    else:
-                        self.max_power = 3
-            # заказы
+                        self.max_power += 1
+                else:
+                    self.max_power = 0
 
     def get_max_power(self):
         self.update_max_power()
@@ -190,14 +188,10 @@ class Equipment(object):
             return 30
 
     def can_buy_lis(self):
-        if self.services['LIS']:
-            return False
-        else:
-            return True
+        return not self.services['LIS']
 
     def buy_lis(self):
         self.services['LIS'] = True
-        self.update_max_power()
 
     # купить реагенты
 
@@ -235,15 +229,8 @@ class Equipment(object):
             expenses += 3
         return expenses
 
-    # переход от первой стадии к второй
-    def next_stage(self):
-        self.reagents_to_units()
-
     def can_work(self):
-        if self.broken:
-            return False
-        else:
-            return True
+        return not self.broken
 
     def get_uuid(self) -> str:
         return self.uuid

@@ -24,7 +24,7 @@ class Register(tornado.web.RequestHandler):
                         jwt_text = jwt.encode({"login": self.request.body_arguments['login'][0].decode('utf-8'),
                                                "exp": str(int(round(datetime.now().timestamp())) + 2629743)},
                                               config["jwt_secret"], algorithm="HS256")
-                        self.set_cookie("user", jwt_text, )
+                        self.set_cookie("user", jwt_text)
                         self.write({'status': 'ok', 'message': 'User created'})
                         self.set_status(200)
                 else:

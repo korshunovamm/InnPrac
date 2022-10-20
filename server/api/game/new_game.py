@@ -13,7 +13,7 @@ class NewGame(tornado.web.RequestHandler):
                 user_info = get_user_info(jwt_text)
                 if user_info[0]:
                     if user_info[1]["privilege"]:
-                        game = Game(str(self.request.body_arguments["ga_name"]))
+                        game = Game(str(self.request.body_arguments["ga_name"][0].decode('utf-8')))
                         GameMongo.add_game(game)
                         self.write({"result": "ok", "message": "Created game", "data": game.get_uuid()})
                         self.set_status(200)

@@ -30,10 +30,13 @@ class Player(object):
         ret['pledges'] = {}
         for x in self.pledges:
             ret['pledges'][x] = self.pledges[x].generate_dict()
+        ret['bank_pledges'] = {}
+        for x in self.pledges:
+            ret['bank_pledges'][x] = self.bank_pledges[x].generate_dict()
         return ret
 
     # конструктор
-    def __init__(self):
+    def __init__(self, name: str):
         # динамичные параметры игрока
         self.events = {  # события, TODO: сбрасывать динамичные
             'saved_from_negative_analytics': False,
@@ -42,14 +45,15 @@ class Player(object):
             'power_reduction': False,  # снижение мощности
             'need_have_logistic': False  # нужна ли логистика для выполнения чужих заказов или своих на чужих мощностях
         }
+        self.name = name
+        self.base_reputation = 0  # базовая репутация игрока
         self.equipments: dict = {}
         self.services = {
             'logistic': False,
             'training': False
         }
-        self.pledges = {
-
-        }
+        self.pledges = {}
+        self.bank_pledges = {}
         self.trade_requests = {}
         self.dataIsReady = False  # TODO: сбрасывать каждый месяц
         self.promotion: int = 0  # TODO: сбрасывать каждый месяц
@@ -75,17 +79,24 @@ class Player(object):
         self.credit: int = 0
         self.uuid = uuid4().hex
         self.equipments_rooms = {}
-        self.orders = {}
-        self.orders_reputation = 0
+        self.orders = {}  # TODO: сбрасывать каждый месяц
+        self.orders_reputation = 0  # TODO: сбрасывать каждый месяц
 
     # имена, uuid и пароль
+
+    def get_name(self):
+        return self.name
+
+    def set_name(self, name):
+        self.name = name
+
     def get_uuid(self):
         return self.uuid
 
     def get_money(self):
         return self.money
 
-    def set_ads_params(self, params):
+    def set_ads_options(self, params):
         self.promotion = params
         self.dataIsReady = True
 
@@ -145,14 +156,14 @@ class Player(object):
                 self.orders_reputation = -3
 
     def calc_reputation(self):
-        ret: int = self.promotion + self.orders_reputation
+        ret: int = self.promotion + self.orders_reputation + self.base_reputation
         if self.services['logistic']:
             ret += 1
         if self.services['training']:
             ret += 1
         for ro in self.rooms.values():
             ret += ro.get_reputation()
-        for eq in self.rooms.values():
+        for eq in self.equipments.values():
             ret += eq.get_reputation()
         return ret
 
@@ -160,6 +171,9 @@ class Player(object):
         self.orders_input = orders_input
 
     def calc_orders_count(self, orders_level):
+        if self.events['orders_is_calculated']:
+            return
+        self.orders_is_calculated = True
         self.orders = {}
         for x in self.orders_input:
             if self.orders_input[x]:
@@ -179,7 +193,7 @@ class Player(object):
         return False
 
     def buy_training_service(self):
-        if self.buy(5) and not self.services['training']:# TODO: сделать цену
+        if self.buy(5) and not self.services['training']:  # TODO: сделать цену
             self.services['training'] = True
             return True
         return False
@@ -199,6 +213,7 @@ class Player(object):
 
     def get_room(self, uuid):
         return self.rooms.get(uuid)
+
     def sell_room(self, room_uuid) -> bool:
         if room_uuid in self.rooms:
             self.sell(round(self.rooms[room_uuid].get_price() / 2, 0))
@@ -305,7 +320,7 @@ class Player(object):
         ro = self.get_room(ro_uuid)
         staff_info = json.loads(read_file('data/staff.json'))[staff_type]
         if self.money >= staff_info['price'] and \
-                ro.get_staff_count()[staff_type] < ro.get_max_staff()[staff_type]:
+                ro.get_staff()[staff_type] < ro.get_max_staff()[staff_type]:
             self.buy(staff_info['price'])
             ro.add_staff(staff_type)
             return True

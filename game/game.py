@@ -90,9 +90,9 @@ class Game(object):
         return len(self.labs)
 
     # создание новой лаборатории
-    def new_lab(self):
+    def new_lab(self, pl_name):
         if len(self.labs) < self.max_pl_count:
-            pl = Player()
+            pl = Player(pl_name)
             self.labs[pl.get_uuid()] = pl
             if len(self.labs) == self.max_pl_count:
                 self.status = 'full'

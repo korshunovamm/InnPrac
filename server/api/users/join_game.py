@@ -6,7 +6,7 @@ from server.mongoDB import UserMongo, GameMongo
 
 
 class JoinGame(tornado.web.RequestHandler):
-    def post(self):
+    def get(self):
         jwt_str = self.get_cookie("user")
         if not jwt_str:
             self.redirect("/login?redirect=" + self.request.path)
@@ -14,12 +14,12 @@ class JoinGame(tornado.web.RequestHandler):
             game_uuid = self.request.path.split("/")[2]
             config = load(open("configs/api.yaml"), Loader=Loader)
             try:
-                userinfo = jwt.decode(jwt_str, config["jwt_secret"], algorithms=["HS256"])
+                user_info = jwt.decode(jwt_str, config["jwt_secret"], algorithms=["HS256"])
                 game = GameMongo.get_game(game_uuid)
                 if game:
                     if game.get_players_count() < game.get_max_players():
-                        pl_uuid = game.new_lab().get_uuid()
-                        res = UserMongo.add_player_to_game(userinfo["login"], game_uuid, pl_uuid)
+                        pl_uuid = game.new_lab(user_info["login"]).get_uuid()
+                        res = UserMongo.add_player_to_game(user_info["login"], game_uuid, pl_uuid)
                         GameMongo.update_game(game)
                         if res[0]:
                             self.write({"status": "ok", "message": res[1]})

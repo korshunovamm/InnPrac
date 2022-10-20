@@ -90,7 +90,12 @@ class ConnectToGame(websocket.WebSocketHandler):
             "need_data": True,
             "action": player.set_ads_options,
             "required_data": [{"name": "ads_options", "optional": False}]
-        }
+        },
+        "change_lab_name": {
+            "need_data": True,
+            "action": player.set_lab_name,
+            "required_data": [{"name": "new_lab_name", "optional": False}]
+        },
         # "new_pledge": {
         #     "need_data": True,
         #     "action": player.new_pledge,
@@ -140,8 +145,9 @@ class ConnectToGame(websocket.WebSocketHandler):
             self.write_message({"type": "error", "error": str(e)})
 
     def on_close(self):
-        if self.game.get_uuid() in connections:
-            connections[self.game.get_uuid()].remove(self)
+        if "game" in self.__dict__:  # if the game is not defined, the connection is not opened
+            if self.game.get_uuid() in connections:
+                connections[self.game.get_uuid()].remove(self)
 
     @staticmethod
     def check_data(action, data):

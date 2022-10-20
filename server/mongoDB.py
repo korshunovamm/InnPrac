@@ -69,6 +69,15 @@ class UserMongo:
         else:
             return False, "User not found"
 
+    @staticmethod
+    def remove_player_from_game(pl_login, ga_uuid):
+        user = UserMongo.get_collection().find_one({"login": pl_login})
+        if user is not None:
+            UserMongo.get_collection().update_one({"login": user["login"]}, {"$unset": {"games." + ga_uuid: ""}})
+            return True, "Player removed"
+        else:
+            return False, "Player not found"
+
 
 class GameMongo:
     database = MongoClient(

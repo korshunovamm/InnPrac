@@ -21,12 +21,15 @@ class Event:  # Event class
         self.input = event_data["input"]
         self.code: int = event_data["code"]
 
-    def action(self, obj=None):
-        if self.input_type() == "nothing":
+    def action(self, obj=None, obj2=None):
+        if self.get_input_type() == "nothing":
             exec("self.action" + str(self.code) + "()")
-        exec("self.action" + str(self.code) + "(obj)")
+        elif self.get_input_type() == "all":
+            exec("self.action" + str(self.code) + "(obj, obj2)")
+        else:
+            exec("self.action" + str(self.code) + "(obj)")
 
-    def input_type(self):
+    def get_input_type(self):
         return self.input
 
     @staticmethod
@@ -49,8 +52,10 @@ class Event:  # Event class
                 lab.orders_correction[i] = 1
 
     @staticmethod
-    def action3(pl):
-        pass  # TODO: добавить событие
+    def action3(game, pl):
+        pl.sell(len(game.labs) + 1)
+        for x in game.labs:
+            game.labs[x].buy(1)
 
     @staticmethod
     def action4(game):
@@ -203,24 +208,23 @@ class Event:  # Event class
                 if eq.type != "reporting" and eq.type != "pre_analytic":
                     orders[eq.get_color()] += eq.get_max_power()
 
-        pl.orders_is_calculated = True
+        pl.events["orders_is_calculated"] = True
         pl.orders = orders
 
     @staticmethod
     def action25(pl):
-        pl.orders_reputation += 5
-
-
-def generate_events():
-    events = []
-    for x in json.loads(codecs.open("data/events.json", encoding='utf-8').read()):
-        for i in range(x['amount']):
-            events.append(Event(x))
-    return events
+        pl.base_reputation += 5
 
 
 class Events:
 
+    @staticmethod
+    def generate_events():
+        events = []
+        for x in json.loads(codecs.open("data/events.json", encoding='utf-8').read()):
+            for i in range(x['amount']):
+                events.append(Event(x))
+        return events
 
     baseEvents = generate_events()
     events = []
