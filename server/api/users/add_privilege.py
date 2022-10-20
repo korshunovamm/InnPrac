@@ -1,6 +1,4 @@
-import json
-
-import tornado
+from tornado.web import RequestHandler
 from yaml import load, Loader
 
 from server.mongoDB import UserMongo
@@ -8,7 +6,7 @@ from server.mongoDB import UserMongo
 settings = load(open('configs/api.yaml'), Loader=Loader)
 
 
-class AddPrivilege(tornado.web.RequestHandler):
+class AddPrivilege(RequestHandler):
     def post(self):
         if self.request.headers.get('Authorization') == "Bearer " + settings["api_key"]:
             if "login" in self.request.body_arguments:
