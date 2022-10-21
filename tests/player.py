@@ -4,7 +4,7 @@ from game.player import Player
 
 
 class DynamicBaseParams(unittest.TestCase):
-    pl = Player()
+    pl = Player("test")
 
     def test_pl_money(self):
         self.assertEqual(120, self.pl.money)
@@ -16,7 +16,7 @@ class DynamicBaseParams(unittest.TestCase):
         self.assertEqual(0, self.pl.promotion)
 
     def test_pl_dataIsReady(self):
-        self.assertEqual(False, self.pl.dataIsReady)
+        self.assertEqual(False, self.pl.data_is_ready)
 
     def test_pl_equipments(self):
         self.assertEqual({}, self.pl.equipments)

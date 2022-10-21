@@ -4,7 +4,7 @@ from game.game import Game
 
 
 class StaticBaseParams(unittest.TestCase):
-    game = Game()
+    game = Game("test")
 
     def test_rooms_count(self):
         self.assertEqual(60, self.game.rooms)

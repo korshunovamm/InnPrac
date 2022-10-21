@@ -5,16 +5,16 @@ from game.game import Game
 
 class Buy(unittest.TestCase):
     def test_buy(self):
-        game = Game()
-        pl = game.new_lab()
+        game = Game("test")
+        pl = game.new_lab("test")
         eq = game.buy_equipment(pl.get_uuid(), "auto", "blue", False)[1]
         self.assertEqual(eq.get_type(), "auto")
         self.assertEqual(eq.get_color(), "blue")
         self.assertIn(eq.get_uuid(), pl.equipments)
 
     def test_buy_to_much(self):
-        game = Game()
-        pl = game.new_lab()
+        game = Game("test")
+        pl = game.new_lab("test")
         pl.money = 10000
         for x in range(10):
             game.buy_equipment(pl.get_uuid(), "auto", "blue", False)
@@ -26,8 +26,8 @@ class Buy(unittest.TestCase):
         self.assertEqual(pl.money, 10000 - 12 * 60)
 
     def test_buy_credit(self):
-        game = Game()
-        pl = game.new_lab()
+        game = Game("test")
+        pl = game.new_lab("test")
         pl.money = 10000
         eq = game.buy_equipment(pl.get_uuid(), "auto", "blue", True)[1]
         self.assertEqual("auto", eq.get_type())
@@ -37,8 +37,8 @@ class Buy(unittest.TestCase):
         self.assertEqual(11, game.credits)
 
     def test_buy_to_much_credit(self):
-        game = Game()
-        pl = game.new_lab()
+        game = Game("test")
+        pl = game.new_lab("test")
         pl.money = 10000
         for x in range(10):
             game.buy_equipment(pl.get_uuid(), "pre_analytic", None, True)
@@ -50,8 +50,8 @@ class Buy(unittest.TestCase):
 
 class Sell(unittest.TestCase):
     def test_sell(self):
-        game = Game()
-        pl = game.new_lab()
+        game = Game("test")
+        pl = game.new_lab("test")
         eq = game.buy_equipment(pl.get_uuid(), "auto", "blue", False)[1]
         game.sell_equipment(pl.get_uuid(), eq.get_uuid())
         self.assertEqual(len(pl.equipments), 0)
@@ -62,8 +62,8 @@ class Sell(unittest.TestCase):
 class Move(unittest.TestCase):
 
     def test_move_to_room(self):
-        game = Game()
-        pl = game.new_lab()
+        game = Game("test")
+        pl = game.new_lab("test")
         ro = game.buy_room(pl.get_uuid())[1]
         eq = game.buy_equipment(pl.get_uuid(), "pre_analytic", None, False)[1]
         game.move_equipment_to_room(pl.get_uuid(), ro.get_uuid(), eq.get_uuid())
@@ -72,8 +72,8 @@ class Move(unittest.TestCase):
         self.assertEqual(ro.get_uuid(), pl.equipments_rooms[eq.get_uuid()])
 
     def test_move_from_room(self):
-        game = Game()
-        pl = game.new_lab()
+        game = Game("test")
+        pl = game.new_lab("test")
         ro = game.buy_room(pl.get_uuid())[1]
         eq = game.buy_equipment(pl.get_uuid(), "pre_analytic", None, False)[1]
         game.move_equipment_to_room(pl.get_uuid(), ro.get_uuid(), eq.get_uuid())
@@ -86,8 +86,8 @@ class Move(unittest.TestCase):
 class BuyReagents(unittest.TestCase):
 
     def test_buy_reagents(self):
-        game = Game()
-        pl_uuid = game.new_lab().get_uuid()
+        game = Game("test")
+        pl_uuid = game.new_lab("test").get_uuid()
         ro_uuid = game.buy_room(pl_uuid)[1].get_uuid()
         eq_uuid = game.buy_equipment(pl_uuid, "auto", "blue", False)[1].get_uuid()
         for x in range(4):
@@ -100,8 +100,8 @@ class BuyReagents(unittest.TestCase):
         self.assertEqual(120 - 10 - 60 - 4*(1 + 2) - 3 * 5, game.labs[pl_uuid].money)
 
     def test_buy_reagents_to_much(self):
-        game = Game()
-        pl_uuid = game.new_lab().get_uuid()
+        game = Game("test")
+        pl_uuid = game.new_lab("test").get_uuid()
         ro_uuid = game.buy_room(pl_uuid)[1].get_uuid()
         eq_uuid = game.buy_equipment(pl_uuid, "auto", "blue", False)[1].get_uuid()
         for x in range(4):
