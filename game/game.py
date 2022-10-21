@@ -47,10 +47,10 @@ class Game(object):
         self.day: int = 1
         self.stage: int = 1
         self.uuid: str = uuid4().hex
-        self.labs = {}
+        self.labs: dict[str, Player] = {}
         self.events_deck = Events()
         self.rooms: int = 60
-        self.equipments: object = {
+        self.equipments: dict[str, int] = {
             'hand': {
                 'yellow': 6,
                 'red': 6,
@@ -78,7 +78,7 @@ class Game(object):
             'pre_analytic': 12,
             'reporting': 12
         }
-        self.staff: object = {
+        self.staff: dict[str, int] = {
             'doctor': 120,
             'lab_assistant': 120
         }
@@ -106,19 +106,19 @@ class Game(object):
     def transition_to_stage_2(self):
         if self.stage == 1:
             self.stage = 2
-            # for lab in self.labs:
-            #     ev = self.events_deck.get_event()
-            #     lab.last_event = ev
-            #     if ev.get_input_type() == 'nothing':
-            #         ev.action()
-            #     elif ev.get_input_type() == 'ga':
-            #         ev.action(self)
-            #     elif ev.get_input_type() == 'pl':
-            #         ev.action(lab)
-            #     else:
-            #         ev.action(self, lab)
+            for lab in self.labs:
+                ev = self.events_deck.get_event()
+                self.labs[lab].last_event = ev
+                if ev.get_input_type() == 'nothing':
+                    ev.action()
+                elif ev.get_input_type() == 'ga':
+                    ev.action(self)
+                elif ev.get_input_type() == 'pl':
+                    ev.action(self.labs[lab])
+                else:
+                    ev.action(self, self.labs[lab])
             for x in self.labs:
-                rep = self.labs[x].CalcReputation()
+                rep = self.labs[x].calc_reputation()
                 if rep < 10:
                     order_level = 0
                 elif rep < 20:
@@ -130,47 +130,10 @@ class Game(object):
                 else:
                     order_level = 4
                 self.labs[x].calc_orders_count(order_level)
+                self.labs[x].calc_power()
 
         else:
             return False
-
-    def new_stage(self):
-        res = 0
-        for lab in self.labs:
-            res += lab.IsReady()
-        if res == len(self.labs):
-            if self.stage == 1:
-                self.stage = 2
-                for x in self.labs:
-                    rep = x.CalcReputation()
-                    if rep < 10:
-                        order_level = 0
-                    elif rep < 20:
-                        order_level = 1
-                    elif rep < 30:
-                        order_level = 2
-                    elif rep < 40:
-                        order_level = 3
-                    else:
-                        order_level = 4
-                    x.CalcOrdersCount(order_level)
-            else:
-                self.day += 1
-                self.stage = 1
-                for x in self.labs:
-                    x.NewDay()
-                    rep = self.labs[x].CalcReputation()
-                    if rep < 10:
-                        order_level = 0
-                    elif rep < 20:
-                        order_level = 1
-                    elif rep < 30:
-                        order_level = 2
-                    elif rep < 40:
-                        order_level = 3
-                    else:
-                        order_level = 4
-                    x.CalcOrdersCount(order_level)
 
     # купить комнату
     def buy_room(self, lab_uuid: str):

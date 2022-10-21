@@ -15,7 +15,7 @@ class Room:
 
     def __init__(self):
         self.uuid = uuid4().hex
-        self.equipment = None
+        self.equipment: Equipment = None
         self.in_trade = False
         self.staff_count = {
             'doctor': 0,

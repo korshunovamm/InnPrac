@@ -1,6 +1,8 @@
 import json
+from cmath import inf
 from uuid import uuid4
 
+from game.entitys.order import Order
 from game.entitys.powerUnit import PowerUnit
 
 
@@ -17,8 +19,6 @@ equData = json.loads(read_file('data/equipments.json'))
 class Equipment(object):
     def generate_dict(self):
         ret = self.__dict__
-        for x in ret['power_units']:
-            ret['power_units'][x] = ret['power_units'][x].generate_dict()
         return ret
 
     def get_color(self):
@@ -42,7 +42,7 @@ class Equipment(object):
     # конструктор
     def __init__(self, eq_type: str, eq_color: str):
         self.max_power = 0
-        self.power_units = {}
+        self.power: int = 0
         self.reagents = 0
         self.broken = False
         self.uuid: str = uuid4().hex
@@ -102,7 +102,7 @@ class Equipment(object):
 
     # мощность
 
-    def update_max_power(self):
+    def update_max_power(self, correction: int = 0):
         staff = self.staff_count
         if self.broken or self.in_room is False:
             self.max_power = 0
@@ -125,7 +125,7 @@ class Equipment(object):
                 elif staff['lab_assistant'] >= 3:
                     self.max_power = 6
                 if self.services['LIS']:
-                    self.max_power = 30
+                    self.max_power = inf
             case 'hand':
                 if staff['lab_assistant'] >= 1 and staff['doctor'] >= 3:
                     if self.services['LIS']:
@@ -149,34 +149,29 @@ class Equipment(object):
                         self.max_power += 1
                 else:
                     self.max_power = 0
+        self.max_power += correction
 
     def get_max_power(self):
         self.update_max_power()
         return self.max_power
 
-    def get_power_units(self):
-        self.reagents_to_units()
-        return self.power_units
+    def get_power(self):
+        self.reagents_to_power(0)
+        return self.power
 
-    def reagents_to_units(self):
-        self.update_max_power()
-        self.units_to_reagents()
-        if self.can_work():
-            for x in range(self.reagents):
-                eq_type = self.type
-                if eq_type == 'hand' or eq_type == 'semi_manual' or eq_type == 'auto':
-                    eq_type = 'analytic'
-                unit = PowerUnit(eq_type, self.color)
-                self.power_units[unit.get_uuid()] = unit
-                self.reagents -= 1
+    def reagents_to_power(self, correction):
+        self.update_max_power(correction)
+        self.power_to_reagents()
+        if self.max_power >= self.reagents:
+            self.reagents = 0
+            self.power = self.reagents
+        else:
+            self.reagents -= self.max_power
+            self.power = self.max_power
 
-    def units_to_reagents(self):
-        reagents = self.reagents
-        for x in self.power_units:
-            if self.power_units[x].is_used() is False:
-                reagents += 1
-        self.power_units = {}
-        self.reagents = reagents
+    def power_to_reagents(self):
+        self.reagents += self.power
+        self.power = 0
 
     # купить ЛИС
     def get_lis_price(self):
@@ -199,7 +194,7 @@ class Equipment(object):
         return self.reagentPrice
 
     def can_buy_reagents(self, amount):
-        self.units_to_reagents()
+        self.power_to_reagents()
         self.update_max_power()
         if self.reagents + amount <= self.max_power:
             return True
@@ -228,6 +223,18 @@ class Equipment(object):
                 expenses += 1
             expenses += 3
         return expenses
+
+    def use(self, order: Order):
+        if (self.type == 'pre_analytic' and not order.get_progress()['pre_analytic']) or (self.type == 'reporting' and not order.get_progress()['reporting']):
+            self.power -= 1
+            order.complite[self.type] = True
+            return True
+        elif self.type in ['hand', 'semi_manual', 'auto'] and not order.get_progress()['analytic']:
+            self.power -= 1
+            order.complite[self.type] = True
+            return True
+        else:
+            return False
 
     def can_work(self):
         return not self.broken

@@ -33,31 +33,35 @@ class Player(object):
         ret['bank_pledges'] = {}
         for x in self.pledges:
             ret['bank_pledges'][x] = self.bank_pledges[x].generate_dict()
+        if self.last_event is not None:
+            ret['last_event'] = self.last_event.generate_dict()
         return ret
 
     # конструктор
     def __init__(self, name: str):
         # динамичные параметры игрока
-        self.events = {  # события, TODO: сбрасывать динамичные
+        self.last_event = None
+        self.reputation = 0 # репутация
+        self.events: dict[str, bool] = {  # события, TODO: сбрасывать динамичные
             'saved_from_negative_analytics': False,
             'orders_is_calculated': False,
             'power_is_calculated': False,
             'power_reduction': False,  # снижение мощности
-            'need_have_logistic': False  # нужна ли логистика для выполнения чужих заказов или своих на чужих мощностях
+            'need_have_logistic': False,  # нужна ли логистика для выполнения чужих заказов или своих на чужих мощностях
         }
         self.name = name
         self.base_reputation = 0  # базовая репутация игрока
         self.equipments: dict = {}
-        self.services = {
+        self.services: dict[str, bool] = {
             'logistic': False,
             'training': False
         }
         self.pledges = {}
         self.bank_pledges = {}
         self.trade_requests = {}
-        self.dataIsReady = False  # TODO: сбрасывать каждый месяц
+        self.data_is_ready = False  # TODO: сбрасывать каждый месяц
         self.promotion: int = 0  # TODO: сбрасывать каждый месяц
-        self.rooms: dict = {}
+        self.rooms: dict[str, Room] = {}
         self.orders_input: dict = {
             'yellow': False,
             'red': False,
@@ -98,13 +102,13 @@ class Player(object):
 
     def set_ads_options(self, params):
         self.promotion = params
-        self.dataIsReady = True
+        self.data_is_ready = True
 
     def get_credit(self):
         return self.credit
 
     def data_is_ready(self):
-        return self.dataIsReady
+        return self.data_is_ready
 
     # покупка
     def buy(self, price: int, credit: bool = False):
@@ -165,6 +169,7 @@ class Player(object):
             ret += ro.get_reputation()
         for eq in self.equipments.values():
             ret += eq.get_reputation()
+        self.reputation = ret
         return ret
 
     def set_orders_input(self, orders_input):
@@ -364,16 +369,11 @@ class Player(object):
             exp += eq.get_expenses()
         return exp
 
-    def calc_power_units(self):
-        units: dict = {}
+    def calc_power(self):
         for ro in self.rooms.values():
             eq = ro.get_equipment()
             if eq is not None:
-                un = eq.get_power_units()
-                if self.events['power_reduction']:
-                    un.pop()
-                units |= un
-        return units
+                eq.reagents_to_power(-int(self.events['power_reduction']))
 
     # сделки
     def get_trade_req(self):
