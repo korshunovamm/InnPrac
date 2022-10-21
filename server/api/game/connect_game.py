@@ -105,17 +105,20 @@ class ConnectToGame(websocket.WebSocketHandler):
 
     def open(self):
         user_info = get_user_info(self.get_cookie('user'))
-        if "game_uuid" in self.request.query_arguments:
+        if "ga_uuid" in self.request.query_arguments:
             if user_info[0]:
-                if self.request.query_arguments["game_uuid"][0].decode('utf-8') in user_info[1]["games"]:
-                    uuid = self.request.query_arguments["game_uuid"][0].decode("utf-8")
-                    if uuid not in connections:
-                        connections[uuid] = []
-                    connections[uuid].append(self)
+                if self.request.query_arguments["ga_uuid"][0].decode('utf-8') in user_info[1]["games"]:
+                    uuid = self.request.query_arguments["ga_uuid"][0].decode("utf-8")
                     self.game = GameMongo.get_game(uuid)
-                    self.pl_uuid = user_info[1]["games"][self.request.query_arguments["game_uuid"][0].decode('utf-8')]
-                    ret = dict(type="connect", data=dict(player_uuid=self.pl_uuid), game=self.game.generate_dict())
-                    self.write_message(ret)
+                    if self.game.get_status() == "running":
+                        if uuid not in connections:
+                            connections[uuid] = []
+                        connections[uuid].append(self)
+                        self.pl_uuid = user_info[1]["games"][self.request.query_arguments["ga_uuid"][0].decode('utf-8')]
+                        ret = dict(type="connect", data=dict(player_uuid=self.pl_uuid), game=self.game.generate_dict())
+                        self.write_message(ret)
+                    else:
+                        self.close(4001, "game is not running")
                 else:
                     self.close(4000, "You are not in this game")
             else:

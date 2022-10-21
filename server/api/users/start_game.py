@@ -15,7 +15,8 @@ class StartGame(RequestHandler):
                     if user_info[1]["privilege"]:
                         if ga:
                             if ga.get_status() == 'waiting':
-                                ga.set_status("started")
+                                ga.set_status("running")
+                                GameMongo.update_game(ga)
                                 self.write({"result": "ok", "message": "Started game"})
                                 self.set_status(200)
                             else:

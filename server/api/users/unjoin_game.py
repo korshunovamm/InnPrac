@@ -15,6 +15,7 @@ class UnjoinGame(tornado.web.RequestHandler):
                     ga = GameMongo.get_game(game_uuid)
                     if ga.get_status() == 'waiting':
                         del ga.labs[user['games'][game_uuid]]
+                        GameMongo.update_game(ga)
                         UserMongo.remove_player_from_game(user["login"], game_uuid)
                         self.write({'status': 'ok', 'message': "Removed from game"})
                         self.set_status(200)

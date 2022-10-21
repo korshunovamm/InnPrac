@@ -11,13 +11,13 @@ from server.api.users.unjoin_game import UnjoinGame
 
 def setup_routers(app):
     app.add_handlers(".*$", [
-        (r"/add_privilege", AddPrivilege),  # This is a POST request, not a GET request.
-        (r"/register", Register),  # This is a POST request, not a GET request.
-        (r"/login", Authorization),  # This is a POST request, not a GET request."
+        (r"/add_privilege", AddPrivilege),
+        (r"/register", Register),
+        (r"/login", Authorization),
         (r"/get_user_info", GetUserInfo),
         (r"/join_game/.*", JoinGame),
-        (r"/new_game", NewGame),  # This is a GET request, not a POST request.
-        (r"/connect_game", ConnectToGame),  # This is a POST request, not a GET request.
-        (r"/unjoin_game", UnjoinGame),  # This is a POST request, not a GET request.
-        (r"/start_game", StartGame),  # This is a POST request, not a GET request.
+        (r"/new_game", NewGame),
+        (r"/connect_game", ConnectToGame),
+        (r"/unjoin_game", UnjoinGame),
+        (r"/start_game", StartGame),
     ])
