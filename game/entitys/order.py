@@ -8,7 +8,7 @@ class Order(object):
         return self.__dict__
 
     def __init__(self, color, owner_uuid):
-        self.ownerUuid = owner_uuid
+        self.owner_uuid = owner_uuid
         self.color = color
         self.uuid = uuid4().hex
         self.complite = {
@@ -24,7 +24,7 @@ class Order(object):
         return self.color
 
     def get_owner(self):
-        return self.ownerUuid
+        return self.owner_uuid
 
     def get_progress(self):
         return self.complite

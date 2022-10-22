@@ -3,7 +3,6 @@ from cmath import inf
 from uuid import uuid4
 
 from game.entitys.order import Order
-from game.entitys.powerUnit import PowerUnit
 
 
 def read_file(path: str):
@@ -40,17 +39,19 @@ class Equipment(object):
         return self.expenses
 
     # конструктор
-    def __init__(self, eq_type: str, eq_color: str):
+    def __init__(self, owner: str, eq_type: str, eq_color: str):
         self.max_power = 0
         self.power: int = 0
+        self.selled_power: dict[str, int] = {} # очищать каждый месяц
         self.reagents = 0
         self.broken = False
+        self.owner = owner
         self.uuid: str = uuid4().hex
         self.price: int = equData[eq_type]['price']
         self.expenses: int = equData[eq_type]['expenses']
         self.reputation: int = equData[eq_type]['reputation']
         self.repair: int = equData[eq_type]['repair']
-        self.reagentPrice: int = equData[eq_type]['reagentPrice']
+        self.reagent_price: int = equData[eq_type]['reagentPrice']
         self.in_room: bool = False
         self.staff_count: dict = {
             'lab_assistant': 0,
@@ -156,7 +157,6 @@ class Equipment(object):
         return self.max_power
 
     def get_power(self):
-        self.reagents_to_power(0)
         return self.power
 
     def reagents_to_power(self, correction):
@@ -191,7 +191,7 @@ class Equipment(object):
     # купить реагенты
 
     def get_reagent_price(self):
-        return self.reagentPrice
+        return self.reagent_price
 
     def can_buy_reagents(self, amount):
         self.power_to_reagents()
@@ -225,13 +225,36 @@ class Equipment(object):
         return expenses
 
     def use(self, order: Order):
-        if (self.type == 'pre_analytic' and not order.get_progress()['pre_analytic']) or (self.type == 'reporting' and not order.get_progress()['reporting']):
-            self.power -= 1
-            order.complite[self.type] = True
-            return True
-        elif self.type in ['hand', 'semi_manual', 'auto'] and not order.get_progress()['analytic']:
-            self.power -= 1
-            order.complite[self.type] = True
+        if isinstance(self.selled_power.get(order.get_owner()), int) and self.selled_power[order.get_owner()] > 0:
+            if (self.type == 'pre_analytic' and not order.get_progress()['pre_analytic']) or (
+                    self.type == 'reporting' and not order.get_progress()['reporting']) or (
+                    self.type in ['hand', 'semi_manual', 'auto'] and (
+                    not order.get_progress()['analytic']) and order.get_color() == self.color):
+                self.selled_power[order.get_owner()] -= 1
+                if self.selled_power[order.get_owner()] <= 0:
+                    del self.selled_power[order.get_owner()]
+                order.complite[self.type] = True
+                return True
+            return False
+        elif order.get_owner() == self.owner:
+            if self.type in ['pre_analytic', 'reporting'] and order.get_progress().get(self.type) is False:
+                self.power -= 1
+                order.complite[self.type] = True
+                return True
+            elif self.type in ['hand', 'semi_manual', 'auto'] and order.get_progress()['analytic'] is False and\
+                    order.get_color() == self.color:
+                self.power -= 1
+                order.complite['analytic'] = True
+                return True
+            return False
+        return False
+
+    def sell_power(self, pl_uuid, amount):
+        if amount <= self.power:
+            self.power -= amount
+            if pl_uuid not in self.selled_power:
+                self.selled_power[pl_uuid] = 0
+            self.selled_power[pl_uuid] += amount
             return True
         else:
             return False

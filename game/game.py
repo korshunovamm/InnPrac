@@ -41,8 +41,9 @@ class Game(object):
 
     # конструктор игры
     def __init__(self, name: str):
-        self.pledges = {}  # залоги игроков TODO: при переходе с 2 на 1 стадию, проверяем что они не просрочены и не отменены
-        self.bank_pledges = {}  # залоги в банке TODO: при переходе с 2 на 1 стадию, проверяем что они не просрочены и не отменены
+        self.pledges = {}  # залоги игроков, при переходе с 2 на 1 стадию, проверяем что они не просрочены и не отменены
+        self.bank_pledges = {}  # залоги в банке, при переходе с 2 на 1 стадию, проверяем что они не просрочены и не отменены
+        self.power_sells: list = []
         self.credits = 12
         self.day: int = 1
         self.stage: int = 1
@@ -275,6 +276,6 @@ class Game(object):
     # купить реагент
     def buy_reagents(self, lab_uuid, eq_uuid, amount):
         if self.stage == 1:
-            return self.labs[lab_uuid].buy_reagents(eq_uuid, amount)
+            return self.labs[lab_uuid].buy_reagents(eq_uuid, amount), self.labs[lab_uuid].get_equipment(eq_uuid)
         else:
-            return False
+            return False, None

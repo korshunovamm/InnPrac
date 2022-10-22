@@ -48,3 +48,14 @@ def buy_service_maintenance(websocket, data):
         return {"result": "ok", "message": "Service maintenance", "data": res[1].generate_dict()}
     else:
         return {"result": "error", "message": "Service maintenance not bought"}
+
+
+def buy_reagents(websocket, data):
+    if websocket.game.labs[websocket.pl_uuid].get_equipment(data["eq_uuid"]) is not None and isinstance(data["count"], int):
+        res = websocket.game.buy_reagents(websocket.pl_uuid, data["eq_uuid"], data["count"])
+        if res[0]:
+            return {"result": "ok", "message": "Reagents bought", "data": res[1].generate_dict()}
+        else:
+            return {"result": "error", "message": "Reagents not bought"}
+    else:
+        return {"result": "error", "message": "Invalid data, dont found equipment or count is not int"}

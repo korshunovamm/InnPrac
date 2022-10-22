@@ -96,6 +96,11 @@ class ConnectToGame(websocket.WebSocketHandler):
             "action": player.set_lab_name,
             "required_data": [{"name": "new_lab_name", "optional": False}]
         },
+        "buy_reagents": {
+            "need_data": True,
+            "action": equipment.buy_reagents,
+            "required_data": [{"name": "eq_uuid", "optional": False}, {"name": "count", "optional": False}]
+        }
         # "new_pledge": {
         #     "need_data": True,
         #     "action": player.new_pledge,

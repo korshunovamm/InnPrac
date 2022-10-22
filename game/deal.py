@@ -83,6 +83,7 @@ class TradeReq:
             eq = seller.rooms[seller.equipments_rooms[eq_uuid]].get_equipment()
             seller.rooms[seller.equipments_rooms[eq_uuid]].set_equipment(None)
             del seller.equipments_rooms[eq_uuid]
+        eq.owner = buyer
         buyer.equipments[eq.get_uuid()] = eq
 
     def sell_room(self, ro_uuid, seller_num):
@@ -143,7 +144,7 @@ class PledgeReq:
         else:
             self.player1_status = 'declined'
 
-    def execute_pledge(self):  # TODO: начало, забираем вещи у игрока 0, зачисляем деньги игроку 0
+    def execute_pledge(self):  # начало, забираем вещи у игрока 0, зачисляем деньги игроку 0
         self.player1.buy(self.purchase_price)
         self.player0.sell(self.purchase_price)
         for x in self.items:
@@ -159,9 +160,9 @@ class PledgeReq:
                     if eq is not None:
                         self.player0.move_equipment_from_room(eq.get_uuid())
                     del self.player0.rooms[x['data'].get_uuid()]
-        pass  # TODO: продаем предметы игроку 1 и получаем деньги на счет игрока 0
+        pass  # продаем предметы игроку 1 и получаем деньги на счет игрока 0
 
-    def execute_redeem(self):  # TODO: выкупаем предметы назад и зачисляем их на счет игрока 0, деньги на счет игрока 1
+    def execute_redeem(self):  # выкупаем предметы назад и зачисляем их на счет игрока 0, деньги на счет игрока 1
         self.status = 'cancelled'
         for x in self.items:
             match x['type']:
@@ -179,6 +180,7 @@ class PledgeReq:
             for x in self.items:
                 match x['type']:
                     case 'equipment':
+                        x['data'].owner = self.player1.get_uuid()
                         self.player1.equipments[x['data'].get_uuid()] = x['data']
                     case 'room':
                         self.player1.rooms[x['data'].get_uuid()] = x['data']
@@ -242,3 +244,72 @@ class PledgeBank:
             return True, self
         else:
             return False, None
+
+
+class PowerSell:
+    def generate_dict(self):
+        ret = copy.copy(self.__dict__)
+        ret['player_0'] = self.player_0.get_uuid()
+        ret['player_1'] = self.player_1.get_uuid()
+        ret['items'] = []
+        for x in self.items:
+            ret['items'].append(dict(type=x['type'], eq_uuid=x['eq_uuid']))
+        return ret
+
+    def __init__(self, player_0, player_1, items, price):
+        self.uuid: str = uuid4().hex
+        self.player_0 = player_0
+        self.player_1 = player_1
+        self.items: list[dict] = items
+        self.price: int = 0
+        self.status = 'waiting'
+        self.pl_0_status: str = 'accepted'
+        self.pl_1_status: str = 'waiting'
+        player_0.power_sells[self.uuid] = self
+        player_1.power_sells[self.uuid] = self
+
+    def accept(self, pl):
+        if pl == self.player_0:
+            self.pl_0_status = 'accepted'
+        elif pl == self.player_1:
+            self.pl_1_status = 'accepted'
+        if self.pl_0_status == 'accepted' and self.pl_1_status == 'accepted':
+            return self.execute()
+
+    def execute(self):
+        if self.status != 'waiting':
+            return False, "Already executed, cancelled or rejected"
+        can_execute = self.check_logistic()
+        if not can_execute:
+            return False, "Can't execute. Problems with logistic"
+        for x in self.items:
+            eq = self.player_0.get_equipment(x['eq_uuid'])
+            if eq is None or eq.get_power() < x['amount']:
+                can_execute = False
+        if can_execute:
+            for x in self.items:
+                eq = self.player_0.get_equipment(x['eq_uuid'])
+                self.player_1.my_power.append({
+                    'pl_uuid': eq.owner,
+                    'type': eq.get_type(),
+                    'amount': x['amount']
+                })
+                eq.sell_power(self.player_1.get_uuid(), x['amount'])
+            self.player_0.sell(self.price)
+            self.player_1.buy(self.price)
+            self.status = 'executed'
+            return True, None
+        return False
+        # self.player_0.buy(self.price)
+        # self.player_1.sell(self.price)
+        # del self.player_0.power_sells[self.uuid]
+        # del self.player_1.power_sells[self.uuid]
+        # return True
+
+    def check_logistic(self) -> bool:
+        if self.player_0.services['logistic'] or self.player_1.services['logistic']:
+            if self.player_0.events['need_have_logistic'] and not self.player_0.services['logistic'] or \
+                    self.player_0.events['need_have_logistic'] and not self.player_0.services['logistic']:
+                return False
+            return True
+        return False

@@ -33,6 +33,10 @@ class Player(object):
         ret['bank_pledges'] = {}
         for x in self.pledges:
             ret['bank_pledges'][x] = self.bank_pledges[x].generate_dict()
+        ret['power_sells'] = {}
+        for x in self.power_sells:
+            ret['power_sells'][x] = self.power_sells[x].generate_dict()
+
         if self.last_event is not None:
             ret['last_event'] = self.last_event.generate_dict()
         return ret
@@ -41,8 +45,10 @@ class Player(object):
     def __init__(self, name: str):
         # динамичные параметры игрока
         self.last_event = None
-        self.reputation = 0 # репутация
-        self.events: dict[str, bool] = {  # события, TODO: сбрасывать динамичные
+        self.power_sells: dict = {}  # сбрасывать каждый месяц
+        self.my_power: list[dict[str, str or int]] = []  # сбрасывать каждый месяц
+        self.reputation = 0  # репутация
+        self.events: dict[str, bool] = {  # события, сбрасывать динамичные
             'saved_from_negative_analytics': False,
             'orders_is_calculated': False,
             'power_is_calculated': False,
@@ -59,8 +65,8 @@ class Player(object):
         self.pledges = {}
         self.bank_pledges = {}
         self.trade_requests = {}
-        self.data_is_ready = False  # TODO: сбрасывать каждый месяц
-        self.promotion: int = 0  # TODO: сбрасывать каждый месяц
+        self.data_is_ready = False  # сбрасывать каждый месяц
+        self.promotion: int = 0  # сбрасывать каждый месяц
         self.rooms: dict[str, Room] = {}
         self.orders_input: dict = {
             'yellow': False,
@@ -77,14 +83,14 @@ class Player(object):
             'green': 0,
             'purple': 0,
             'grey': 0
-        }  # TODO: сбрасывать каждый месяц
-        self.orders_is_calculated = False  # TODO: сбрасывать каждый месяц
+        }  # сбрасывать каждый месяц
+        self.orders_is_calculated = False  # сбрасывать каждый месяц
         self.money: int = 120
         self.credit: int = 0
         self.uuid = uuid4().hex
-        self.equipments_rooms = {}
-        self.orders = {}  # TODO: сбрасывать каждый месяц
-        self.orders_reputation = 0  # TODO: сбрасывать каждый месяц
+        self.equipments_rooms: dict[str, str] = {}
+        self.orders: dict[str, Order] = {}  # сбрасывать каждый месяц
+        self.orders_reputation = 0  # сбрасывать каждый месяц
 
     # имена, uuid и пароль
 
@@ -116,11 +122,7 @@ class Player(object):
             self.credit += int(round(price * 1.5, 0))
             return True
         else:
-            if self.money >= price:
-                self.money -= price
-                return True
-            else:
-                return False
+            self.money -= price
 
     # продажа
     def sell(self, price: int):
@@ -192,13 +194,15 @@ class Player(object):
         return self.orders
 
     def buy_logistic_service(self):
-        if self.buy(5) and not self.services['logistic']:
+        if self.money >= 5 and not self.services['logistic']:
+            self.buy(5)
             self.services['logistic'] = True
             return True
         return False
 
     def buy_training_service(self):
-        if self.buy(5) and not self.services['training']:  # TODO: сделать цену
+        if self.money >= 5 and not self.services['training']:
+            self.buy(5)
             self.services['training'] = True
             return True
         return False
@@ -238,7 +242,7 @@ class Player(object):
         return self.money >= equipment_info['price']
 
     def buy_equipment(self, eq_type: str, eq_color: str) -> object:
-        eq = Equipment(eq_type, eq_color)
+        eq = Equipment(self.uuid, eq_type, eq_color)
         self.equipments[eq.get_uuid()] = eq
         return eq
 
@@ -353,7 +357,8 @@ class Player(object):
                 eq.buy_reagents(amount)
                 self.buy(eq.get_reagent_price() * amount)
                 return True
-            return True
+            return False
+        return False
 
     # каждый месяц
 
