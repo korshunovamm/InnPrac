@@ -50,7 +50,6 @@ class Player(object):
         self.reputation = 0  # репутация
         self.events: dict[str, bool] = {  # события, сбрасывать динамичные
             'saved_from_negative_analytics': False,
-            'orders_is_calculated': False,
             'power_is_calculated': False,
             'power_reduction': False,  # снижение мощности
             'need_have_logistic': False,  # нужна ли логистика для выполнения чужих заказов или своих на чужих мощностях
@@ -75,7 +74,7 @@ class Player(object):
             'green': False,
             'purple': False,
             'grey': False
-        }
+        }  # сбрасывать каждый месяц
         self.orders_correction: dict = {
             'yellow': 0,
             'red': 0,
@@ -106,7 +105,7 @@ class Player(object):
     def get_money(self):
         return self.money
 
-    def set_ads_options(self, params):
+    def set_ads_options(self, params):  # TODO теперь списываем бабки каждый раз при покупке + задаем 1 раз
         self.promotion = params
         self.data_is_ready = True
 
@@ -178,7 +177,7 @@ class Player(object):
         self.orders_input = orders_input
 
     def calc_orders_count(self, orders_level):
-        if self.events['orders_is_calculated']:
+        if self.orders_is_calculated:
             return
         self.orders_is_calculated = True
         self.orders = {}
@@ -254,7 +253,7 @@ class Player(object):
             return True, eq.get_type(), eq.get_color()
         elif eq_uuid in self.equipments_rooms:
             eq = self.rooms[self.equipments_rooms[eq_uuid]].get_equipment()
-            self.sell(round(self.equipments_rooms[eq_uuid].get_price() / 2, 0))
+            self.sell(round(eq.get_price() / 2, 0))
             self.rooms[self.equipments_rooms[eq_uuid]].set_equipment(None)
             del self.equipments_rooms[eq_uuid]
             return True, eq.get_type(), eq.get_color()
@@ -375,10 +374,11 @@ class Player(object):
         return exp
 
     def calc_power(self):
-        for ro in self.rooms.values():
-            eq = ro.get_equipment()
-            if eq is not None:
-                eq.reagents_to_power(-int(self.events['power_reduction']))
+        if not self.events['power_is_calculated']:
+            for ro in self.rooms.values():
+                eq = ro.get_equipment()
+                if eq is not None:
+                    eq.reagents_to_power(-int(self.events['power_reduction']))
 
     # сделки
     def get_trade_req(self):
@@ -392,3 +392,34 @@ class Player(object):
 
     def decline_trade_req(self, trade_uuid):
         self.trade_requests[trade_uuid].decline(self)
+
+    def dump_params(self):
+        self.orders_reputation = 0
+        self.orders = {}
+        self.orders_correction = {
+            'yellow': 0,
+            'red': 0,
+            'blue': 0,
+            'green': 0,
+            'purple': 0,
+            'grey': 0
+        }
+        self.promotion = 0
+        self.data_is_ready = False
+        self.orders_is_calculated = False
+        self.orders_input = {
+            'yellow': 0,
+            'red': 0,
+            'blue': 0,
+            'green': 0,
+            'purple': 0,
+            'grey': 0
+        }
+        self.events: dict[str, bool] = {
+            'saved_from_negative_analytics': self.events['saved_from_negative_analytics'],
+            'power_is_calculated': False,
+            'power_reduction': False,  # снижение мощности
+            'need_have_logistic': False,  # нужна ли логистика для выполнения чужих заказов или своих на чужих мощностях
+        }
+        self.power_sells = []
+        self.my_power = []

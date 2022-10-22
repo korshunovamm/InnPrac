@@ -185,7 +185,7 @@ class Event:  # Event class
     @staticmethod
     def action22(pl):
         pl.events["power_is_calculated"] = True
-        pl.events["orders_is_calculated"] = True
+        pl.orders_is_calculated = True
 
     @staticmethod
     def action23(game):
@@ -208,7 +208,7 @@ class Event:  # Event class
                 if eq.type != "reporting" and eq.type != "pre_analytic":
                     orders[eq.get_color()] += eq.get_max_power()
 
-        pl.events["orders_is_calculated"] = True
+        pl.orders_is_calculated = True
         pl.orders = orders
 
     @staticmethod
