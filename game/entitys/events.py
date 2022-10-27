@@ -184,7 +184,6 @@ class Event:  # Event class
 
     @staticmethod
     def action22(pl):
-        pl.events["power_is_calculated"] = True
         pl.orders_is_calculated = True
 
     @staticmethod

@@ -79,7 +79,7 @@ class Room:
     def get_reputation(self):
         ret: int = self.get_base_reputation()
         if self.equipment is not None:
-            ret += self.equipment.calc_reputation()
+            ret += self.equipment.get_reputation()
         ret += self.staff_count['doctor'] + self.staff_count['lab_assistant']
         return ret
 

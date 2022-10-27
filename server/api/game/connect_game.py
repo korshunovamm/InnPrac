@@ -75,12 +75,12 @@ class ConnectToGame(websocket.WebSocketHandler):
             "action": player.redeem_bank_deposit,
             "required_data": [{"name": "plg_uuid", "optional": False}]
         },
-        "new_deal": {
-            "need_data": True,
-            "action": player.new_deal,
-            "required_data": [{"name": "my_trade_items", "optional": False},
-                              {'name': "partner_uuid", "optional": False}, {'name': "partner_items", "optional": False}]
-        },
+        # "new_deal": {
+        #     "need_data": True,
+        #     "action": player.new_deal,
+        #     "required_data": [{"name": "my_trade_items", "optional": False},
+        #                     {'name': "partner_uuid", "optional": False}, {'name': "partner_items", "optional": False}]
+        # },
         "set_orders_input": {
             "need_data": True,
             "action": player.set_orders_input,
@@ -100,7 +100,7 @@ class ConnectToGame(websocket.WebSocketHandler):
             "need_data": True,
             "action": equipment.buy_reagents,
             "required_data": [{"name": "eq_uuid", "optional": False}, {"name": "count", "optional": False}]
-        }
+        },
         # "new_pledge": {
         #     "need_data": True,
         #     "action": player.new_pledge,

@@ -119,6 +119,7 @@ class PledgeReq:
         self.player0_status = 'accepted'
         self.player0.pledges[self.uuid] = self
         self.player1_status = 'pending'
+        self.end_date = end_date
 
     def get_uuid(self):
         return self.uuid
@@ -126,7 +127,7 @@ class PledgeReq:
     def get_status(self):
         return self.status
 
-    def accept(self, player):
+    def accept(self, player) -> tuple[bool, str]:
         if player.get_uuid() == self.player0.get_uuid():
             self.player0 = player
             self.player0_status = 'accepted'
@@ -136,7 +137,9 @@ class PledgeReq:
             self.player1_status = 'accepted'
         if self.player0_status == 'accepted' and self.player1_status == 'accepted' and self.status == 'pending':
             self.status = 'executed'
-            self.execute_pledge()
+            return self.execute_pledge()
+        else:
+            return True, "accepted, waiting for another player to accept, or pledge is already executed"
 
     def decline(self, player):
         if player.get_uuid() == self.player0.get_uuid():
@@ -145,23 +148,43 @@ class PledgeReq:
             self.player1_status = 'declined'
 
     def execute_pledge(self):  # начало, забираем вещи у игрока 0, зачисляем деньги игроку 0
-        self.player1.buy(self.purchase_price)
-        self.player0.sell(self.purchase_price)
+        if self.validate_start():
+            self.player1.buy(self.purchase_price)
+            self.player0.sell(self.purchase_price)
+            for x in self.items:
+                match x['type']:
+                    case 'equipment':
+                        if x['data'].get_uuid() in self.player0.equipments:
+                            del self.player0.equipments[x['data'].get_uuid()]
+                        else:
+                            self.player0.rooms[self.player0.equipment_rooms[x['data'].get_uuid()]].set_eqipment(None)
+                    case 'room':
+                        x['data'].staff_count = {
+                            'doctor': 0,
+                            'lab_assistant': 0
+                        }
+                        eq = x['data'].get_equipment()
+                        if eq is not None:
+                            self.player0.move_equipment_from_room(eq.get_uuid())
+                        del self.player0.rooms[x['data'].get_uuid()]
+            self.status = 'executed'
+            return True, 'Pledge executed'
+        else:
+            self.status = 'failed'
+            return False, 'some items are not found or not enough money'
+
+    def validate_start(self):
         for x in self.items:
             match x['type']:
                 case 'equipment':
-                    self.player1.equipments[x['data'].get_uuid()] = x['data']
+                    if self.player0.get_equipment(x['data'].get_uuid()) is None:
+                        return False
                 case 'room':
-                    x['data'].staff_count = {
-                        'doctor': 0,
-                        'lab_assistant': 0
-                    }
-                    eq = x['data'].get_equipment()
-                    if eq is not None:
-                        self.player0.move_equipment_from_room(eq.get_uuid())
-                    del self.player0.rooms[x['data'].get_uuid()]
-        pass  # продаем предметы игроку 1 и получаем деньги на счет игрока 0
-
+                    if x['data'].get_uuid() not in self.player0.rooms:
+                        return False
+        if self.player1.money < self.purchase_price:
+            return False
+        return True
     def execute_redeem(self):  # выкупаем предметы назад и зачисляем их на счет игрока 0, деньги на счет игрока 1
         self.status = 'cancelled'
         for x in self.items:
@@ -175,6 +198,7 @@ class PledgeReq:
 
     def execute_give_bail(self):
         if self.status == 'executed':
+            self.status = 'expired'
             del self.player0.pledges[self.uuid]
             del self.player1.pledges[self.uuid]
             for x in self.items:
@@ -184,6 +208,7 @@ class PledgeReq:
                         self.player1.equipments[x['data'].get_uuid()] = x['data']
                     case 'room':
                         self.player1.rooms[x['data'].get_uuid()] = x['data']
+
 
 
 class PledgeBank:
@@ -240,7 +265,7 @@ class PledgeBank:
                         self.player.equipments[x['data'].get_uuid()] = x['data']
                     case 'room':
                         self.player.rooms[x['data'].get_uuid()] = x['data']
-            self.status = 'purchased'
+            self.status = 'canceled'
             return True, self
         else:
             return False, None

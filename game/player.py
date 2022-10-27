@@ -45,6 +45,9 @@ class Player(object):
     def __init__(self, name: str):
         # динамичные параметры игрока
         self.last_event = None
+        self.pledges_items: dict[str, list]= {
+
+        }
         self.power_sells: dict = {}  # сбрасывать каждый месяц
         self.my_power: list[dict[str, str or int]] = []  # сбрасывать каждый месяц
         self.reputation = 0  # репутация
@@ -134,6 +137,7 @@ class Player(object):
     @staticmethod
     def order_level_to_amount(order_level: str):
         lev: dict = {
+            0: [0],
             1: [0, 0, 0, 1, 2],
             2: [0, 0, 1, 2, 3],
             3: [0, 1, 2, 3, 4],

@@ -92,6 +92,9 @@ class Equipment(object):
     def break_it(self):
         self.broken = True
 
+    def reset_selled_power(self):
+        self.selled_power = []
+
     def get_repair_price(self):
         if self.services['serviceContract']:
             return 0
@@ -205,7 +208,7 @@ class Equipment(object):
         self.reagents += amount
 
     # расчет репутации
-    def calc_reputation(self):
+    def get_reputation(self):
         reputation = self.reputation
         if self.services['LIS']:
             reputation += 3

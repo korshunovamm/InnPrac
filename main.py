@@ -1,4 +1,4 @@
-from game.deal import PowerSell
+from game.deal import PowerSell, PledgeReq
 from game.entitys.events import Events
 from game.game import Game
 
@@ -23,13 +23,20 @@ pl.set_orders_input({
 for x in range(4):
     game.buy_staff(pl.get_uuid(), ro.get_uuid(), "doctor")
     game.buy_staff(pl.get_uuid(), ro.get_uuid(), "lab_assistant")
-game.move_equipment_to_room(pl.get_uuid(), ro.get_uuid(), eq.get_uuid())
-game.buy_reagents(pl.get_uuid(), eq.get_uuid(), 4)
-power_sell = PowerSell(pl, pl2, [{
-    'eq_uuid': eq.get_uuid(),
-    'amount': 1
-}], 5)
+pledge = game.new_pledge_req(pl.get_uuid(), pl2.get_uuid(), 1, 2, [
+    {
+        'type': 'room',
+        'data': ro
+    },
+    {
+        'type': 'equipment',
+        'data': eq
+    }
+], 1)
+pl2.pledges[pledge[1].get_uuid()].accept(pl2)
 game.transition_to_stage_2()
-pl.buy_logistic_service()
+game.transition_to_stage_1()
+game.transition_to_stage_2()
+game.transition_to_stage_1()
 # power_sell.accept(pl2)
 pass
