@@ -1,4 +1,6 @@
 from server.api.game.connect_game import ConnectToGame
+from server.api.game.get_game_from_archive import GetGameFromArchive
+from server.api.game.go_to_next_stage import GoToNextStage
 from server.api.game.new_game import NewGame
 from server.api.users.add_privilege import AddPrivilege
 from server.api.users.get_user_info import GetUserInfo
@@ -20,4 +22,6 @@ def setup_routers(app):
         (r"/connect_game", ConnectToGame),
         (r"/unjoin_game", UnjoinGame),
         (r"/start_game", StartGame),
+        (r"/go_to_next_stage", GoToNextStage),
+        (r"/get_game_from_archive", GetGameFromArchive)
     ])

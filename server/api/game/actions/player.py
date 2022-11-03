@@ -116,3 +116,15 @@ def set_lab_name(websocket, data):
         return {"result": "error", "message": "Too long"}
     websocket.game.labs[websocket.pl_uuid].set_name(data["new_lab_name"])
     return {"result": "ok", "message": "Lab name set"}
+
+
+def orders_place_input(websocket, data):
+    if websocket.game.stage == 2:
+        if not isinstance(data.get("order_colors"), list):
+            return {"result": "error", "message": "Invalid data"}
+        for x in data["order_colors"]:
+            if not isinstance(data["order_colors"][x], dict):
+                return {"result": "error", "message": "Invalid data"}
+
+        return {"result": "ok", "message": "Orders input set"}
+    return {"result": "error", "message": "You can't set orders"}

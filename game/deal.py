@@ -42,7 +42,7 @@ class TradeReq:
         else:
             self.player1 = player
             self.player1_status = 'accepted'
-        if self.player0_status == 'accepted' and self.player1_status == 'accepted':
+        if self.can_be_executed():
             self.status = 'executed'
             self.execute()
 
@@ -51,6 +51,36 @@ class TradeReq:
             self.player0_status = 'declined'
         else:
             self.player1_status = 'declined'
+
+    def can_be_executed(self):
+        if not (self.player0_status == 'accepted' and self.player1_status == 'accepted'):
+            return False
+        for item in self.player0_items:
+            money = 0
+            match item['type']:
+                case 'money':
+                    money += item['data']
+                    if money > self.player0.money:
+                        return False
+                case 'equipment':
+                    if self.player0.get_equipment(item['data'] is None):
+                        return False
+                case 'room':
+                    if item['data'] not in self.player0.rooms.keys():
+                        return False
+        for item in self.player1_items:
+            money = 0
+            match item['type']:
+                case 'money':
+                    money += item['data']
+                    if money > self.player1.money:
+                        return False
+                case 'equipment':
+                    if self.player1.get_equipment(item['data'] is None):
+                        return False
+                case 'room':
+                    if item['data'] not in self.player1.rooms.keys():
+                        return False
 
     def execute(self):
         for item in self.player0_items:
@@ -62,7 +92,6 @@ class TradeReq:
                     self.sell_equipment(item['data'], 0)
                 case 'room':
                     self.sell_room(item['data'], 0)
-
         for item in self.player1_items:
             match item['type']:  # удаляем предметы у второго игрока и добавляем первому
                 case 'money':
@@ -136,7 +165,6 @@ class PledgeReq:
             player.pledges[self.uuid] = self
             self.player1_status = 'accepted'
         if self.player0_status == 'accepted' and self.player1_status == 'accepted' and self.status == 'pending':
-            self.status = 'executed'
             return self.execute_pledge()
         else:
             return True, "accepted, waiting for another player to accept, or pledge is already executed"
@@ -185,6 +213,7 @@ class PledgeReq:
         if self.player1.money < self.purchase_price:
             return False
         return True
+
     def execute_redeem(self):  # выкупаем предметы назад и зачисляем их на счет игрока 0, деньги на счет игрока 1
         self.status = 'cancelled'
         for x in self.items:
@@ -208,7 +237,6 @@ class PledgeReq:
                         self.player1.equipments[x['data'].get_uuid()] = x['data']
                     case 'room':
                         self.player1.rooms[x['data'].get_uuid()] = x['data']
-
 
 
 class PledgeBank:
