@@ -4,3 +4,4 @@ output
 картинки_для_разработки
 configs
 fullgame.py
+*/__pycache__

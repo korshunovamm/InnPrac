@@ -3,6 +3,7 @@ import copy
 import json
 import os
 import random
+from pathlib import Path
 
 
 class Event:  # Event class
@@ -221,7 +222,7 @@ class Events:
     @staticmethod
     def generate_events():
         events = []
-        for x in json.loads(codecs.open(os.path.join(os.getcwd(), "data", "events.json"), encoding='utf-8').read()):
+        for x in json.loads(open(os.getcwd() + "/data/events.json", encoding='utf-8').read()):
             for i in range(x['amount']):
                 events.append(Event(x))
         return events
