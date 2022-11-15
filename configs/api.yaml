@@ -1,2 +1,3 @@
 api_key:  # API key for the API
 jwt_secret:
+port: 8888
