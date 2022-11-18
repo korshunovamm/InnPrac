@@ -10,6 +10,8 @@ class GetGameFromArchive(RequestHandler):
         start = self.get_argument("start", "1_1")
         end = self.get_argument("end", "*")
         ga_uuid = self.get_argument("ga_uuid", None)
+        if not os.path.exists("archive/"):
+            os.makedirs("archive/")
         if ga_uuid and ga_uuid in os.listdir("archive/"):
             files = os.listdir("archive/" + ga_uuid)
             files.sort()
