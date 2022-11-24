@@ -5,10 +5,12 @@ from uuid import uuid4
 
 class Order(object):
     def generate_dict(self):
-        return self.__dict__
+        ret = copy.copy(self.__dict__)
+        ret["owner"] = self.owner.get_uuid()
+        return ret
 
-    def __init__(self, color, owner_uuid):
-        self.owner_uuid = owner_uuid
+    def __init__(self, color, owner):
+        self.owner = owner
         self.color = color
         self.uuid = uuid4().hex
         self.complite = {
@@ -24,7 +26,7 @@ class Order(object):
         return self.color
 
     def get_owner(self):
-        return self.owner_uuid
+        return self.owner
 
     def get_progress(self):
         return self.complite

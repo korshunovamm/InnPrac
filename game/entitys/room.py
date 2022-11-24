@@ -1,6 +1,4 @@
 import copy
-import inspect
-import json
 from uuid import uuid4
 
 from game.entitys.equipment import Equipment
@@ -15,8 +13,7 @@ class Room:
 
     def __init__(self):
         self.uuid = uuid4().hex
-        self.equipment: Equipment = None
-        self.in_trade = False
+        self.equipment: Equipment or None = None
         self.staff_count = {
             'doctor': 0,
             'lab_assistant': 0

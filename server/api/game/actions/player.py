@@ -106,7 +106,7 @@ def set_ads_options(websocket, data):
             return {"result": "error", "message": "Invalid data"}
         if data["ads_options"] > websocket.game.labs[websocket.pl_uuid].get_money():
             return {"result": "error", "message": "To expensive"}
-        websocket.game.labs[websocket.pl_uuid].set_ads_options(data["ads_options"])
+        websocket.game.labs[websocket.pl_uuid].buy_ad(data["ads_options"])
         return {"result": "ok", "message": "Orders input set"}
     return {"result": "error", "message": "You can't set orders"}
 

@@ -7,7 +7,7 @@ from server.api.users.get_user_info import GetUserInfo
 from server.api.users.join_game import JoinGame
 from server.api.users.login.auth import Authorization
 from server.api.users.login.register import Register
-from server.api.users.start_game import StartGame
+from server.api.game.start_game import StartGame
 from server.api.users.unjoin_game import UnjoinGame
 
 

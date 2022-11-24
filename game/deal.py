@@ -19,18 +19,7 @@ class TradeReq:
         self.status = 'pending'
         self.player0_status = 'accepted'
         self.player1_status = 'pending'
-        for item in self.player0_items:
-            match item['type']:
-                case 'equipment':
-                    player_0.get_equipment(item['data']).in_trade = True
-                case 'room':
-                    player_0.get_room(item['data']).in_trade = True
-        for item in self.player0_items:
-            match item['type']:
-                case 'equipment':
-                    player_0.get_equipment(item['data']).in_trade = True
-                case 'room':
-                    player_0.get_room(item['data']).in_trade = True
+
 
     def get_uuid(self):
         return self.uuid
@@ -342,22 +331,25 @@ class PowerSell:
         if can_execute:
             for x in self.items:
                 eq = self.player_0.get_equipment(x['eq_uuid'])
-                self.player_1.my_power.append({
-                    'pl_uuid': eq.owner,
-                    'type': eq.get_type(),
-                    'amount': x['amount']
-                })
+                if eq.get_type() not in ["auto", "semi_manual", "hand"]:
+                    self.player_1.my_power.append({
+                        'pl_uuid': eq.owner,
+                        'type': eq.get_type(),
+                        'amount': x['amount']
+                    })
+                else:
+                    self.player_1.my_power.append({
+                        'pl_uuid': eq.owner,
+                        'type': eq.get_type(),
+                        'color': eq.get_color(),
+                        'amount': x['amount']
+                    })
                 eq.sell_power(self.player_1.get_uuid(), x['amount'])
             self.player_0.sell(self.price)
             self.player_1.buy(self.price)
             self.status = 'executed'
             return True, None
         return False
-        # self.player_0.buy(self.price)
-        # self.player_1.sell(self.price)
-        # del self.player_0.power_sells[self.uuid]
-        # del self.player_1.power_sells[self.uuid]
-        # return True
 
     def check_logistic(self) -> bool:
         if self.player_0.services['logistic'] or self.player_1.services['logistic']:

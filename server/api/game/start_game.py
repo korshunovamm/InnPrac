@@ -17,13 +17,13 @@ class StartGame(RequestHandler):
                 if user_info[0]:
                     if user_info[1]["privilege"]:
                         if ga:
-                            if ga.get_status() == 'waiting' and ga.get_players_count() > 1:  # TODO: change to 1, after tests
+                            if ga.get_status() == 'waiting' and ga.get_players_count() > 1:
                                 ga.set_status("running")
                                 if not os.path.exists("archive/"):
                                     os.makedirs("archive/")
                                 if not os.path.exists("archive/" + ga.uuid):
                                     os.makedirs("archive/" + ga.uuid)
-                                f = open("archive/" + ga.get_uuid() + "/" + str(ga.day) + "_" + str(ga.stage) + ".json",
+                                f = open("archive/" + ga.get_uuid() + "/" + str(ga.month) + "_" + str(ga.stage) + ".json",
                                          "a")
                                 f.write(json.dumps(ga.generate_dict()))
                                 f.close()

@@ -6,6 +6,7 @@ from uuid import uuid4
 from game.entitys.equipment import Equipment
 from game.entitys.order import Order
 from game.entitys.room import Room
+# TODO:  давать деньги за выполнение заказов
 
 
 def read_file(path: str):
@@ -45,7 +46,7 @@ class Player(object):
     def __init__(self, name: str):
         # динамичные параметры игрока
         self.last_event = None
-        self.pledges_items: dict[str, list]= {
+        self.pledges_items: dict[str, list] = {
 
         }
         self.power_sells: dict = {}  # сбрасывать каждый месяц
@@ -67,7 +68,6 @@ class Player(object):
         self.pledges = {}
         self.bank_pledges = {}
         self.trade_requests = {}
-        self.data_is_ready = False  # сбрасывать каждый месяц
         self.promotion: int = 0  # сбрасывать каждый месяц
         self.rooms: dict[str, Room] = {}
         self.orders_input: dict = {
@@ -108,15 +108,14 @@ class Player(object):
     def get_money(self):
         return self.money
 
-    def set_ads_options(self, params):  # TODO теперь списываем бабки каждый раз при покупке + задаем 1 раз
-        self.promotion = params
-        self.data_is_ready = True
+    def buy_ad(self, count):
+        if self.buy(count):
+            self.promotion += count
+            return True
+        return False
 
     def get_credit(self):
         return self.credit
-
-    def data_is_ready(self):
-        return self.data_is_ready
 
     # покупка
     def buy(self, price: int, credit: bool = False):
@@ -150,6 +149,7 @@ class Player(object):
         complete_orders_count = 0
         for x in self.orders:
             if self.orders[x].is_complite():
+
                 complete_orders_count += 1
         if orders_count == 0:
             self.orders_reputation = 0
@@ -189,7 +189,7 @@ class Player(object):
             if self.orders_input[x]:
                 orders = self.order_level_to_amount(orders_level) + self.orders_correction[x]
                 for z in range(orders):
-                    order = Order(x, self.uuid)
+                    order = Order(x, self)
                     self.orders[order.get_uuid()] = order
         return self.orders
 
@@ -252,12 +252,18 @@ class Player(object):
     def sell_equipment(self, eq_uuid: str):
         if eq_uuid in self.equipments:
             eq = self.equipments[eq_uuid]
-            self.sell(round(self.equipments[eq_uuid].get_price() / 2, 0))
+            if eq.is_broken():
+                self.sell(round(eq.get_price() / 10, 0))
+            else:
+                self.sell(round(eq.get_price() / 2, 0))
             del self.equipments[eq_uuid]
             return True, eq.get_type(), eq.get_color()
         elif eq_uuid in self.equipments_rooms:
             eq = self.rooms[self.equipments_rooms[eq_uuid]].get_equipment()
-            self.sell(round(eq.get_price() / 2, 0))
+            if eq.is_broken():
+                self.sell(round(eq.get_price() / 10, 0))
+            else:
+                self.sell(round(eq.get_price() / 2, 0))
             self.rooms[self.equipments_rooms[eq_uuid]].set_equipment(None)
             del self.equipments_rooms[eq_uuid]
             return True, eq.get_type(), eq.get_color()
@@ -409,7 +415,6 @@ class Player(object):
             'grey': 0
         }
         self.promotion = 0
-        self.data_is_ready = False
         self.orders_is_calculated = False
         self.orders_input = {
             'yellow': 0,
@@ -425,5 +430,5 @@ class Player(object):
             'power_reduction': False,  # снижение мощности
             'need_have_logistic': False,  # нужна ли логистика для выполнения чужих заказов или своих на чужих мощностях
         }
-        self.power_sells = []
+        self.power_sells = {}
         self.my_power = []

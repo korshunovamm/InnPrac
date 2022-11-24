@@ -15,9 +15,6 @@ class DynamicBaseParams(unittest.TestCase):
     def test_pl_promotion(self):
         self.assertEqual(0, self.pl.promotion)
 
-    def test_pl_dataIsReady(self):
-        self.assertEqual(False, self.pl.data_is_ready)
-
     def test_pl_equipments(self):
         self.assertEqual({}, self.pl.equipments)
 

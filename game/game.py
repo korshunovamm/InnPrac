@@ -43,15 +43,14 @@ class Game(object):
     def __init__(self, name: str):
         self.pledges = {}  # залоги игроков, при переходе с 2 на 1 стадию, проверяем что они не просрочены и не отменены
         self.bank_pledges = {}  # залоги в банке
-        self.power_sells: list = []
         self.credits = 12
-        self.day: int = 1
+        self.month: int = 1
         self.stage: int = 1
         self.uuid: str = uuid4().hex
         self.labs: dict[str, Player] = {}
-        self.events_deck = Events()
+        self.events_deck: Events = Events()
         self.rooms: int = 60
-        self.equipments: dict[str, int] = {
+        self.equipments: dict[str, int or dict[str, int]] = {
             'hand': {
                 'yellow': 6,
                 'red': 6,
@@ -138,7 +137,7 @@ class Game(object):
     def transition_to_stage_1(self):
         if self.stage == 2:
             self.stage = 1
-            self.day += 1
+            self.month += 1
             for lab in self.labs:
                 self.labs[lab].calc_orders_reputation()
                 self.labs[lab].dump_params()
@@ -149,7 +148,7 @@ class Game(object):
                         eq.reset_selled_power()
             pledges = copy.copy(self.pledges)
             for x in pledges:
-                if self.pledges[x].end_date < self.day:
+                if self.pledges[x].end_date < self.month:
                     self.pledges[x].execute_give_bail()
                     del self.pledges[x]
                 elif self.pledges[x].get_status() == 'canceled':
@@ -157,6 +156,7 @@ class Game(object):
             for x in self.bank_pledges:
                 if self.pledges[x].get_status() == 'canceled':
                     del self.pledges[x]
+
         else:
             return False
 
@@ -264,7 +264,7 @@ class Game(object):
     # новая сделка
     def new_trade_req(self, pl_0_uuid, pl_1_uuid, pl_0_items, pl_1_items):
         if self.stage == 1:
-            trade = TradeReq(self.labs[pl_0_uuid], pl_0_items, pl_1_items)
+            trade = TradeReq(self.labs[pl_0_uuid], self.labs[pl_1_uuid], pl_0_items, pl_1_items)
             self.labs[pl_0_uuid].add_trade_req(trade)
             self.labs[pl_1_uuid].add_trade_req(trade)
             return True
@@ -290,7 +290,7 @@ class Game(object):
     # новый залог
     def new_pledge_req(self, pl_0_uuid, pl_1_uuid, purchase_price, redemption_price, items, duration):
         if self.stage == 1:
-            trade = PledgeReq(self.labs[pl_0_uuid], purchase_price, redemption_price, items, self.day + duration)
+            trade = PledgeReq(self.labs[pl_0_uuid], purchase_price, redemption_price, items, self.month + duration)
             self.pledges[trade.get_uuid()] = trade
             self.labs[pl_1_uuid].pledges[trade.get_uuid()] = trade
             return True, trade

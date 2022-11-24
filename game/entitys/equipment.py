@@ -42,7 +42,7 @@ class Equipment(object):
     def __init__(self, owner: str, eq_type: str, eq_color: str):
         self.max_power = 0
         self.power: int = 0
-        self.selled_power: dict[str, int] = {} # очищать каждый месяц
+        self.selled_power: dict[str, int] = {}
         self.reagents = 0
         self.broken = False
         self.owner = owner
@@ -263,6 +263,7 @@ class Equipment(object):
             return False
 
     def can_work(self):
+
         return not self.broken
 
     def get_uuid(self) -> str:

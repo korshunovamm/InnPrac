@@ -9,6 +9,7 @@ from pathlib import Path
 class Event:  # Event class
     def generate_dict(self):
         ret = copy.copy(self.__dict__)
+        del ret["input"]
         return ret
 
     def get_name(self):

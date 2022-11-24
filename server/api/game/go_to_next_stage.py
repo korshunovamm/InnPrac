@@ -30,7 +30,7 @@ class GoToNextStage(RequestHandler):
                             os.makedirs("archive/")
                         if not os.path.exists("archive/" + game.uuid):
                             os.makedirs("archive/" + game.uuid)
-                        f = open("archive/" + game.get_uuid() + "/" + str(game.day) + "_" + str(game.stage) + ".json",
+                        f = open("archive/" + game.get_uuid() + "/" + str(game.month) + "_" + str(game.stage) + ".json",
                                  "a")
                         f.write(json.dumps(game.generate_dict()))
                         f.close()
