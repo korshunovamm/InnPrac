@@ -1,3 +1,4 @@
+import copy
 import json
 from cmath import inf
 from uuid import uuid4
@@ -17,7 +18,8 @@ equData = json.loads(read_file('data/equipments.json'))
 
 class Equipment(object):
     def generate_dict(self):
-        ret = self.__dict__
+        ret = copy.copy(self.__dict__)
+        ret['owner'] = self.owner.get_uuid()
         return ret
 
     def get_color(self):
@@ -39,7 +41,7 @@ class Equipment(object):
         return self.expenses
 
     # конструктор
-    def __init__(self, owner: str, eq_type: str, eq_color: str):
+    def __init__(self, owner, eq_type: str, eq_color: str):
         self.max_power = 0
         self.power: int = 0
         self.selled_power: dict[str, int] = {}
@@ -71,8 +73,6 @@ class Equipment(object):
             'lab_assistant': 0,
             'doctor': 0
         }
-
-    # покупка реагентов
 
     # оборудование сломано
 
@@ -106,7 +106,7 @@ class Equipment(object):
 
     # мощность
 
-    def update_max_power(self, correction: int = 0):
+    def update_max_power(self):
         staff = self.staff_count
         if self.broken or self.in_room is False:
             self.max_power = 0
@@ -153,7 +153,6 @@ class Equipment(object):
                         self.max_power += 1
                 else:
                     self.max_power = 0
-        self.max_power += correction
 
     def get_max_power(self):
         self.update_max_power()
@@ -163,14 +162,14 @@ class Equipment(object):
         return self.power
 
     def reagents_to_power(self, correction):
-        self.update_max_power(correction)
+        self.update_max_power()
         self.power_to_reagents()
-        if self.max_power >= self.reagents:
-            self.reagents = 0
+        if self.max_power + correction >= self.reagents:
             self.power = self.reagents
+            self.reagents = 0
         else:
-            self.reagents -= self.max_power
-            self.power = self.max_power
+            self.reagents -= self.max_power + correction
+            self.power = self.max_power + correction
 
     def power_to_reagents(self):
         self.reagents += self.power
@@ -236,18 +235,27 @@ class Equipment(object):
                 self.selled_power[order.get_owner()] -= 1
                 if self.selled_power[order.get_owner()] <= 0:
                     del self.selled_power[order.get_owner()]
-                order.complite[self.type] = True
+                order.progress[self.type] = True
+                if all(order.progress.values()):
+                    if order.payment_type == 'post_pay':
+                        order.owner.money += 20
                 return True
             return False
         elif order.get_owner() == self.owner:
             if self.type in ['pre_analytic', 'reporting'] and order.get_progress().get(self.type) is False:
                 self.power -= 1
-                order.complite[self.type] = True
+                order.progress[self.type] = True
+                if all(order.progress.values()):
+                    if order.payment_type == 'post_pay':
+                        order.owner.money += 20
                 return True
             elif self.type in ['hand', 'semi_manual', 'auto'] and order.get_progress()['analytic'] is False and\
                     order.get_color() == self.color:
                 self.power -= 1
-                order.complite['analytic'] = True
+                order.progress['analytic'] = True
+                if all(order.progress.values()):
+                    if order.payment_type == 'post_pay':
+                        order.owner.money += 20
                 return True
             return False
         return False

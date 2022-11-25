@@ -6,7 +6,6 @@ from uuid import uuid4
 from game.entitys.equipment import Equipment
 from game.entitys.order import Order
 from game.entitys.room import Room
-# TODO:  давать деньги за выполнение заказов
 
 
 def read_file(path: str):
@@ -46,9 +45,8 @@ class Player(object):
     def __init__(self, name: str):
         # динамичные параметры игрока
         self.last_event = None
-        self.pledges_items: dict[str, list] = {
-
-        }
+        self.pledges_items: dict[str, list] = {}
+        self.pay_type: str = 'post_pay'
         self.power_sells: dict = {}  # сбрасывать каждый месяц
         self.my_power: list[dict[str, str or int]] = []  # сбрасывать каждый месяц
         self.reputation = 0  # репутация
@@ -108,6 +106,9 @@ class Player(object):
     def get_money(self):
         return self.money
 
+    def set_payment_type(self, pay_type):
+        self.pay_type = pay_type
+
     def buy_ad(self, count):
         if self.buy(count):
             self.promotion += count
@@ -134,9 +135,8 @@ class Player(object):
         return self.orders_input
 
     @staticmethod
-    def order_level_to_amount(order_level: str):
+    def order_level_to_amount(order_level: int):
         lev: dict = {
-            0: [0],
             1: [0, 0, 0, 1, 2],
             2: [0, 0, 1, 2, 3],
             3: [0, 1, 2, 3, 4],
@@ -144,12 +144,17 @@ class Player(object):
         }
         return random.choice(lev[order_level])
 
+    def orders_refund(self):
+        if self.pay_type == 'pre_pay':
+            for x in self.orders:
+                if not self.orders[x].is_complite():
+                    self.money -= 30
+
     def calc_orders_reputation(self):
         orders_count = len(self.orders)
         complete_orders_count = 0
         for x in self.orders:
             if self.orders[x].is_complite():
-
                 complete_orders_count += 1
         if orders_count == 0:
             self.orders_reputation = 0
@@ -189,7 +194,7 @@ class Player(object):
             if self.orders_input[x]:
                 orders = self.order_level_to_amount(orders_level) + self.orders_correction[x]
                 for z in range(orders):
-                    order = Order(x, self)
+                    order = Order(x, self, self.pay_type)
                     self.orders[order.get_uuid()] = order
         return self.orders
 
@@ -245,7 +250,7 @@ class Player(object):
         return self.money >= equipment_info['price']
 
     def buy_equipment(self, eq_type: str, eq_color: str) -> object:
-        eq = Equipment(self.uuid, eq_type, eq_color)
+        eq = Equipment(self, eq_type, eq_color)
         self.equipments[eq.get_uuid()] = eq
         return eq
 

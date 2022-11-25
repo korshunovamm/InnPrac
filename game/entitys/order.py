@@ -9,11 +9,12 @@ class Order(object):
         ret["owner"] = self.owner.get_uuid()
         return ret
 
-    def __init__(self, color, owner):
+    def __init__(self, color, owner, payment_type):
         self.owner = owner
+        self.payment_type = payment_type
         self.color = color
         self.uuid = uuid4().hex
-        self.complite = {
+        self.progress = {
             'pre_analytic': False,
             'analytic': False,
             'reporting': False
@@ -29,7 +30,7 @@ class Order(object):
         return self.owner
 
     def get_progress(self):
-        return self.complite
+        return self.progress
 
     def is_complite(self):
-        return self.complite['pre_analytic'] and self.complite['analytic'] and self.complite['reporting']
+        return all(self.progress.values())

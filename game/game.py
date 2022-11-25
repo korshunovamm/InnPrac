@@ -118,7 +118,8 @@ class Game(object):
                 else:
                     ev.action(self, self.labs[lab])
             for x in self.labs:
-                rep = self.labs[x].calc_reputation()
+                lab = self.labs[x]
+                rep = lab.calc_reputation()
                 if rep < 10:
                     order_level = 0
                 elif rep < 20:
@@ -129,8 +130,11 @@ class Game(object):
                     order_level = 3
                 else:
                     order_level = 4
-                self.labs[x].calc_orders_count(order_level)
-                self.labs[x].calc_power()
+                lab.calc_orders_count(order_level)
+                lab.calc_power()
+                if lab.pay_type == 'pre_pay':
+                    lab.sell(len(lab.orders) * 20)
+                return True
         else:
             return False
 
@@ -140,6 +144,7 @@ class Game(object):
             self.month += 1
             for lab in self.labs:
                 self.labs[lab].calc_orders_reputation()
+                self.labs[lab].orders_refund()
                 self.labs[lab].dump_params()
                 self.labs[lab].buy(self.labs[lab].calc_expenses())
                 for x in self.labs[lab].rooms:
@@ -156,7 +161,6 @@ class Game(object):
             for x in self.bank_pledges:
                 if self.pledges[x].get_status() == 'canceled':
                     del self.pledges[x]
-
         else:
             return False
 
@@ -188,8 +192,9 @@ class Game(object):
             else:
                 self.equipments[eq_type] -= 1
             if credit and self.credits > 0 or not credit:
+                if credit:
+                    self.credits -= 1
                 eq = lab.buy_equipment(eq_type, eq_color)
-                self.credits -= 1
                 lab.buy(equipment_info['price'], credit)
                 return True, eq
             else:

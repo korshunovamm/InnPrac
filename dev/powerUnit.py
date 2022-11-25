@@ -20,8 +20,8 @@ class PowerUnit(object):
 
     def use(self, order):
         if not self.used:
-            if (not order.complite[self.type]) and (not self.checkColor) or self.color == order.color:
-                order.complite[self.type] = True
+            if (not order.progress[self.type]) and (not self.checkColor) or self.color == order.color:
+                order.progress[self.type] = True
                 return True
             else:
                 return False
