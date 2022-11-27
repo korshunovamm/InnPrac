@@ -81,7 +81,7 @@ def new_deal(websocket, data):
             return {"result": "error", "message": "Invalid data"}
     if websocket.game.stage != 1:
         return {"result": "error", "message": "You can't create deal"}
-    pledge = PledgeReq(websocket.game.labs[websocket.pl_uuid], )
+    pledge = PledgeReq(websocket.game.labs[websocket.pl_uuid], ) # TODO: fix this
     return {"result": "ok", "message": "Pledge accepted", "data": pledge.generate_dict()}
 
 

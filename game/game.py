@@ -153,7 +153,7 @@ class Game(object):
                         eq.reset_selled_power()
             pledges = copy.copy(self.pledges)
             for x in pledges:
-                if self.pledges[x].end_date < self.month:
+                if self.pledges[x].end_month < self.month:
                     self.pledges[x].execute_give_bail()
                     del self.pledges[x]
                 elif self.pledges[x].get_status() == 'canceled':
@@ -295,10 +295,9 @@ class Game(object):
     # новый залог
     def new_pledge_req(self, pl_0_uuid, pl_1_uuid, purchase_price, redemption_price, items, duration):
         if self.stage == 1:
-            trade = PledgeReq(self.labs[pl_0_uuid], purchase_price, redemption_price, items, self.month + duration)
-            self.pledges[trade.get_uuid()] = trade
-            self.labs[pl_1_uuid].pledges[trade.get_uuid()] = trade
-            return True, trade
+            pledge = PledgeReq(self.labs[pl_0_uuid], self.labs[pl_1_uuid], purchase_price, redemption_price, items, self.month + duration)
+            self.pledges[pledge.get_uuid()] = pledge
+            return True, pledge
         else:
             return False, None
 

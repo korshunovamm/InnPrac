@@ -18,7 +18,7 @@ class TradeReq:
         self.player1_items = player1_items
         self.status = 'pending'
         self.player0_status = 'accepted'
-        self.player1_status = 'pending'
+        self.player1_status = 'declined'
 
 
     def get_uuid(self):
@@ -31,7 +31,7 @@ class TradeReq:
         else:
             self.player1 = player
             self.player1_status = 'accepted'
-        if self.can_be_executed():
+        if self.can_be_execute():
             self.status = 'executed'
             self.execute()
 
@@ -71,7 +71,40 @@ class TradeReq:
                     if item['data'] not in self.player1.rooms.keys():
                         return False
 
+    def can_execute(self):
+        if not (self.player0_status == 'accepted' and self.player1_status == 'accepted'):
+            return False
+        for item in self.player0_items:
+            money = 0
+            match item['type']:
+                case 'money':
+                    money += item['data']
+                    if money > self.player0.money:
+                        return False
+                case 'equipment':
+                    if self.player0.get_equipment(item['data'] is None):
+                        return False
+                case 'room':
+                    if item['data'] not in self.player0.rooms.keys():
+                        return False
+        for item in self.player1_items:
+            money = 0
+            match item['type']:
+                case 'money':
+                    money += item['data']
+                    if money > self.player1.money:
+                        return False
+                case 'equipment':
+                    if self.player1.get_equipment(item['data'] is None):
+                        return False
+                case 'room':
+                    if item['data'] not in self.player1.rooms.keys():
+                        return False
+
     def execute(self):
+        if not self.can_execute():
+            self.status = 'failed'
+            return
         for item in self.player0_items:
             match item['type']:  # удаляем предметы у первого игрока и добавляем второму
                 case 'money':
@@ -126,18 +159,20 @@ class PledgeReq:
         ret['player1'] = self.player1.get_uuid()
         return ret
 
-    def __init__(self, player_0, purchase_price: int, redemption_price: int, items: array, end_date: int):
+    def __init__(self, player_0, player_1, purchase_price: int, redemption_price: int, items: array, end_month: int):
         self.uuid = uuid4().hex
         self.player0 = player_0
-        self.player1 = None
+        self.player1 = player_1
+        player_0.pledges[self.uuid] = self
+        player_1.pledges[self.uuid] = self
         self.purchase_price = purchase_price
         self.redemption_price = redemption_price
         self.items = items
         self.status = 'pending'
         self.player0_status = 'accepted'
         self.player0.pledges[self.uuid] = self
-        self.player1_status = 'pending'
-        self.end_date = end_date
+        self.player1_status = 'canceled'
+        self.end_month = end_month
 
     def get_uuid(self):
         return self.uuid
@@ -160,9 +195,9 @@ class PledgeReq:
 
     def decline(self, player):
         if player.get_uuid() == self.player0.get_uuid():
-            self.player0_status = 'declined'
+            self.player0_status = 'canceled'
         else:
-            self.player1_status = 'declined'
+            self.player1_status = 'canceled'
 
     def execute_pledge(self):  # начало, забираем вещи у игрока 0, зачисляем деньги игроку 0
         if self.validate_start():

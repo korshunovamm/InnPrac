@@ -1,3 +1,4 @@
+from game.deal import TradeReq, PledgeReq
 from game.entitys.equipment import Equipment
 import xlsxwriter
 from game.entitys.events import Events, Event
@@ -6,14 +7,17 @@ from game.entitys.room import Room
 from game.game import Game
 from game.player import Player
 
-workbook = xlsxwriter.Workbook('dev/test.xlsx')
-worksheet = workbook.add_worksheet()
 pl = Player("test")
+pl2 = Player("test")
 expenses = []
-obj = Order("yellow", pl).generate_dict()
-for x in obj:
+obj = PledgeReq(pl, pl2, 0, 0, [], 2)
+dict_ = obj.generate_dict()
+workbook = xlsxwriter.Workbook('dev/' + str(type(obj)).split(".")[-1][:-2]+'.xlsx')
+worksheet = workbook.add_worksheet()
+
+for x in dict_:
     if x != "uuid":
-        expenses.append([x, str(obj[x]), str(type(obj[x]))[len("<class '"):-len("'>")]])
+        expenses.append([x, str(dict_[x]), str(type(obj.__dict__[x])).split(".")[-1][:-2].replace("<class '", "")])
 
 expenses = tuple(expenses)
 row, col = 0, 0
