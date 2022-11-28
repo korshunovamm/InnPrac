@@ -103,6 +103,12 @@ class Game(object):
         else:
             return False
 
+    def remove_lab(self, lab_uuid):
+        if lab_uuid in self.labs:
+            del self.labs[lab_uuid]
+            return True
+        else:
+            return False
     def transition_to_stage_2(self):
         if self.stage == 1:
             self.stage = 2

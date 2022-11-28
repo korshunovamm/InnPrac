@@ -1,4 +1,5 @@
 from server.api.game.connect_game import ConnectToGame
+from server.api.game.delete_user import DeleteUserFromGame
 from server.api.game.get_game_from_archive import GetGameFromArchive
 from server.api.game.go_to_next_stage import GoToNextStage
 from server.api.game.new_game import NewGame
@@ -8,7 +9,6 @@ from server.api.users.join_game import JoinGame
 from server.api.users.login.auth import Authorization
 from server.api.users.login.register import Register
 from server.api.game.start_game import StartGame
-from server.api.users.unjoin_game import UnjoinGame
 
 
 def setup_routers(app):
@@ -20,8 +20,8 @@ def setup_routers(app):
         (r"/join_game/.*", JoinGame),
         (r"/new_game", NewGame),
         (r"/connect_game", ConnectToGame),
-        (r"/unjoin_game", UnjoinGame),
         (r"/start_game", StartGame),
         (r"/go_to_next_stage", GoToNextStage),
-        (r"/get_game_from_archive", GetGameFromArchive)
+        (r"/get_game_from_archive", GetGameFromArchive),
+        (r"/delete_user_from_game", DeleteUserFromGame),
     ])

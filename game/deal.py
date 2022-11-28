@@ -20,7 +20,6 @@ class TradeReq:
         self.player0_status = 'accepted'
         self.player1_status = 'declined'
 
-
     def get_uuid(self):
         return self.uuid
 
@@ -31,8 +30,7 @@ class TradeReq:
         else:
             self.player1 = player
             self.player1_status = 'accepted'
-        if self.can_be_execute():
-            self.status = 'executed'
+        if self.player0_status == 'accepted' and self.player1_status == 'accepted':
             self.execute()
 
     def decline(self, player):
@@ -40,36 +38,6 @@ class TradeReq:
             self.player0_status = 'declined'
         else:
             self.player1_status = 'declined'
-
-    def can_be_executed(self):
-        if not (self.player0_status == 'accepted' and self.player1_status == 'accepted'):
-            return False
-        for item in self.player0_items:
-            money = 0
-            match item['type']:
-                case 'money':
-                    money += item['data']
-                    if money > self.player0.money:
-                        return False
-                case 'equipment':
-                    if self.player0.get_equipment(item['data'] is None):
-                        return False
-                case 'room':
-                    if item['data'] not in self.player0.rooms.keys():
-                        return False
-        for item in self.player1_items:
-            money = 0
-            match item['type']:
-                case 'money':
-                    money += item['data']
-                    if money > self.player1.money:
-                        return False
-                case 'equipment':
-                    if self.player1.get_equipment(item['data'] is None):
-                        return False
-                case 'room':
-                    if item['data'] not in self.player1.rooms.keys():
-                        return False
 
     def can_execute(self):
         if not (self.player0_status == 'accepted' and self.player1_status == 'accepted'):
@@ -105,6 +73,7 @@ class TradeReq:
         if not self.can_execute():
             self.status = 'failed'
             return
+        self.status = 'executed'
         for item in self.player0_items:
             match item['type']:  # удаляем предметы у первого игрока и добавляем второму
                 case 'money':
@@ -317,7 +286,7 @@ class PledgeBank:
                         self.player.equipments[x['data'].get_uuid()] = x['data']
                     case 'room':
                         self.player.rooms[x['data'].get_uuid()] = x['data']
-            self.status = 'canceled'
+            self.status = 'redeemed'
             return True, self
         else:
             return False, None
@@ -341,9 +310,22 @@ class PowerSell:
         self.price: int = 0
         self.status = 'waiting'
         self.pl_0_status: str = 'accepted'
-        self.pl_1_status: str = 'waiting'
+        self.pl_1_status: str = 'canceled'
         player_0.power_sells[self.uuid] = self
         player_1.power_sells[self.uuid] = self
+
+    def cancel(self, pl):
+        if self.status == 'waiting':
+            if self.player_0.get_uuid() == pl.get_uuid():
+                self.pl_0_status = 'canceled'
+                return True
+            elif self.player_1.get_uuid() == pl.get_uuid():
+                self.pl_1_status = 'canceled'
+                return True
+            else:
+                return False
+        else:
+            return False
 
     def accept(self, pl):
         if pl == self.player_0:
@@ -355,9 +337,11 @@ class PowerSell:
 
     def execute(self):
         if self.status != 'waiting':
-            return False, "Already executed, cancelled or rejected"
+            self.status = 'failed'
+            return False, "Already executed, cancelled or failed"
         can_execute = self.check_logistic()
         if not can_execute:
+            self.status = 'failed'
             return False, "Can't execute. Problems with logistic"
         for x in self.items:
             eq = self.player_0.get_equipment(x['eq_uuid'])
@@ -384,7 +368,9 @@ class PowerSell:
             self.player_1.buy(self.price)
             self.status = 'executed'
             return True, None
-        return False
+        else:
+            self.status = 'failed'
+            return False, "Can't execute. Dont have enough power"
 
     def check_logistic(self) -> bool:
         if self.player_0.services['logistic'] or self.player_1.services['logistic']:
