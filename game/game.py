@@ -250,10 +250,10 @@ class Game(object):
 
     # купить персонал
 
-    def buy_staff(self, pl_uuid, ro_uuid, staff_type):
+    def buy_staff(self, pl_uuid, ro_uuid, staff_type, amount):
         if self.stage == 1 and self.staff[staff_type] > 0:
             pl = self.labs[pl_uuid]
-            if pl.buy_staff(ro_uuid, staff_type):
+            if pl.buy_staff(ro_uuid, staff_type, amount):
                 self.staff[staff_type] -= 1
                 return True, pl.get_room(ro_uuid)
             else:

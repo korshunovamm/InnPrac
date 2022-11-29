@@ -1,8 +1,12 @@
 def buy(websocket, data):
     if websocket.game is not None:
         game = websocket.game
-        if (data["credit"].lower() == "true" or data["credit"].lower() == "false") and (data["eq_type"] in ["pre_analytic", "reporting"] and "eq_color" not in data) or (data["eq_type"] in ["auto", "semi_manual", "hand"] and "eq_color" in data):
-            res = game.buy_equipment(websocket.pl_uuid, data["eq_type"], data.get("eq_color"), data["credit"])
+        if (data["credit"].lower() == "true" or
+            data["credit"].lower() == "false") and data["eq_type"] in ["pre_analytic", "reporting"] or\
+                (data["eq_type"] in ["auto", "semi_manual", "hand"] and
+                 data.get("eq_color") in ["yellow", "red", "green", "blue", "purple", "grey"]):
+            res = game.buy_equipment(websocket.pl_uuid, data["eq_type"],
+                                     data.get("eq_color"), data["credit"].lower() == "true")
             if res[0]:
                 return {"result": "ok", "message": "Equipment bought", "data": res[1].generate_dict()}
             else:
@@ -59,3 +63,19 @@ def buy_reagents(websocket, data):
             return {"result": "error", "message": "Reagents not bought"}
     else:
         return {"result": "error", "message": "Invalid data, dont found equipment or count is not int"}
+
+
+def move_equipment_to_room(websocket, data):
+    game = websocket.game
+    if game.move_equipment_to_room(websocket.pl_uuid, data["ro_uuid"], data["eq_uuid"]):
+        return {"result": "ok", "message": "Equipment moved"}
+    else:
+        return {"result": "error", "message": "Equipment not moved"}
+
+
+def move_equipment_from_room(websocket, data):
+    game = websocket.game
+    if game.move_equipment_from_room(websocket.pl_uuid, data["ro_uuid"]):
+        return {"result": "ok", "message": "Equipment moved"}
+    else:
+        return {"result": "error", "message": "Equipment not moved"}

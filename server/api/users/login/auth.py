@@ -54,4 +54,4 @@ def get_user_info(jwt_text):
             return True, user
         return False, None
     except Exception as e:
-        return False
+        return False, None

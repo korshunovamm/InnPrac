@@ -285,8 +285,8 @@ class Player(object):
         else:
             return False
 
-    def move_equipment_from_room(self, eq_uuid: str):
-        ro = self.rooms[self.equipments_rooms[eq_uuid]]
+    def move_equipment_from_room(self, ro_uuid: str):
+        ro = self.rooms[ro_uuid]
         eq = ro.get_equipment()
         if eq is not None:
             ro.set_equipment(None)
@@ -333,20 +333,19 @@ class Player(object):
     def repair_equipment(self, eq_uuid: str):
         eq = self.get_equipment(eq_uuid)
         if eq['state'] == 'broken' and self.money >= eq.get_repair_price():
-            self.money -= eq.get_repair_price()
+            self.buy(eq.get_repair_price())
             eq.repair_it()
             return True
         return True
 
     # купить персонал
-    def buy_staff(self, ro_uuid: str, staff_type: str):
+    def buy_staff(self, ro_uuid: str, staff_type: str, amount: int):
         ro = self.get_room(ro_uuid)
         staff_info = json.loads(read_file('data/staff.json'))[staff_type]
         if self.money >= staff_info['price'] and \
                 ro.get_staff()[staff_type] < ro.get_max_staff()[staff_type]:
             self.buy(staff_info['price'])
-            ro.add_staff(staff_type)
-            return True
+            return ro.add_staff(staff_type, amount)
         else:
             return False
 
@@ -395,7 +394,6 @@ class Player(object):
                 if eq is not None:
                     eq.reagents_to_power(-int(self.events['power_reduction']))
 
-    # сделки
     def get_trade_req(self):
         return self.trade_requests
 

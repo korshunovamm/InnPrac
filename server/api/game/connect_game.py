@@ -32,6 +32,16 @@ class ConnectToGame(websocket.WebSocketHandler):
             "action": equipment.sell,
             "required_data": [{"name": "eq_uuid", "optional": False}]
         },
+        "move_equipment_from_room": {
+            "need_data": True,
+            "action": equipment.move_equipment_from_room,
+            "required_data": [{"name": "ro_uuid", "optional": False}]
+        },
+        "move_equipment_to_room": {
+            "need_data": True,
+            "action": equipment.move_equipment_to_room,
+            "required_data": [{"name": "eq_uuid", "optional": False}, {"name": "ro_uuid", "optional": False}]
+        },
         "buy_lis": {
             "need_data": True,
             "action": equipment.buy_lis,
@@ -40,7 +50,8 @@ class ConnectToGame(websocket.WebSocketHandler):
         "buy_staff": {
             "need_data": True,
             "action": room.buy_staff,
-            "required_data": [{"name": "ro_uuid", "optional": False}, {"name": "st_type", "optional": False}]
+            "required_data": [{"name": "ro_uuid", "optional": False}, {"name": "st_type", "optional": False},
+                              {"name": "amount", "optional": False}]
         },
         "sell_staff": {
             "need_data": True,
@@ -65,16 +76,16 @@ class ConnectToGame(websocket.WebSocketHandler):
             "action": equipment.buy_service_maintenance,
             "required_data": [{"name": "eq_uuid", "optional": False}]
         },
-        "new_bank_deposit": {
-            "need_data": True,
-            "action": player.new_bank_deposit,
-            "required_data": [{"name": "items", "optional": False}]
-        },
-        "redeem_bank_pledge": {
-            "need_data": True,
-            "action": player.redeem_bank_deposit,
-            "required_data": [{"name": "plg_uuid", "optional": False}]
-        },
+        # "new_bank_deposit": {
+        #     "need_data": True,
+        #     "action": player.new_bank_deposit,
+        #     "required_data": [{"name": "items", "optional": False}]
+        # },
+        # "redeem_bank_pledge": {
+        #     "need_data": True,
+        #     "action": player.redeem_bank_deposit,
+        #     "required_data": [{"name": "plg_uuid", "optional": False}]
+        # },
         # "new_deal": {
         #     "need_data": True,
         #     "action": player.new_deal,
@@ -86,10 +97,21 @@ class ConnectToGame(websocket.WebSocketHandler):
             "action": player.set_orders_input,
             "required_data": [{"name": "order_colors", "optional": False}]
         },
-        "set_ads_options": {
+        "set_payment_type": {
             "need_data": True,
-            "action": player.set_ads_options,
-            "required_data": [{"name": "ads_options", "optional": False}]
+            "action": player.set_payment_type,
+            "required_data": [{"name": "payment_type", "optional": False}]
+        },
+        "move_staff": {
+            "need_data": True,
+            "action": room.move_staff,
+            "required_data": [{"name": "st_type", "optional": False}, {"name": "ro_from_uuid", "optional": False},
+                              {"name": "ro_to_uuid", "optional": False}, {"name": "amount", "optional": False}]
+        },
+        "buy_ad": {
+            "need_data": True,
+            "action": player.buy_ad,
+            "required_data": [{"name": "count", "optional": False}]
         },
         "change_lab_name": {
             "need_data": True,
@@ -101,12 +123,6 @@ class ConnectToGame(websocket.WebSocketHandler):
             "action": equipment.buy_reagents,
             "required_data": [{"name": "eq_uuid", "optional": False}, {"name": "count", "optional": False}]
         },
-        "orders_place_input": {
-            "need_data": True,
-            "action": player.orders_place_input,
-            "required_data": [{"name": "orders_place", "optional": False}]
-        },
-
         # "new_pledge": {
         #     "need_data": True,
         #     "action": player.new_pledge,

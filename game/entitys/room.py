@@ -58,9 +58,9 @@ class Room:
     def get_staff(self):
         return self.staff_count
 
-    def add_staff(self, ro_type):
-        if self.staff_count[ro_type] < 4:
-            self.staff_count[ro_type] += 1
+    def add_staff(self, stf_type, amount):
+        if self.staff_count[stf_type] < 5-amount:
+            self.staff_count[stf_type] += amount
             if self.equipment is not None:
                 self.equipment.update_max_power()
             return True
