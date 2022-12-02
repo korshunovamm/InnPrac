@@ -3,13 +3,13 @@ import subprocess
 
 
 def count_lines(filename):
-    s = sum(1 for line in open(filename, encoding="utf8"))
+    s = sum(1 for _ in open(filename, encoding="utf8"))
     return s
 
 
 def count_symbol(filename):
-    file = open(filename, encoding="utf8")
-    s = len(file.read())
+    file_n = open(filename, encoding="utf8")
+    s = len(file_n.read())
     return s
 
 

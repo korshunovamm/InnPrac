@@ -109,6 +109,7 @@ class Game(object):
             return True
         else:
             return False
+
     def transition_to_stage_2(self):
         if self.stage == 1:
             self.stage = 2
@@ -278,9 +279,9 @@ class Game(object):
             trade = TradeReq(self.labs[pl_0_uuid], self.labs[pl_1_uuid], pl_0_items, pl_1_items)
             self.labs[pl_0_uuid].add_trade_req(trade)
             self.labs[pl_1_uuid].add_trade_req(trade)
-            return True
+            return True, trade
         else:
-            return False
+            return False, None
 
     # принять сделку
     def accept_trade_req(self, pl_uuid, trade_uuid):
@@ -301,7 +302,8 @@ class Game(object):
     # новый залог
     def new_pledge_req(self, pl_0_uuid, pl_1_uuid, purchase_price, redemption_price, items, duration):
         if self.stage == 1:
-            pledge = PledgeReq(self.labs[pl_0_uuid], self.labs[pl_1_uuid], purchase_price, redemption_price, items, self.month + duration)
+            pledge = PledgeReq(self.labs[pl_0_uuid], self.labs[pl_1_uuid], purchase_price, redemption_price, items,
+                               self.month + duration)
             self.pledges[pledge.get_uuid()] = pledge
             return True, pledge
         else:

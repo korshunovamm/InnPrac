@@ -6,96 +6,103 @@ from uuid import uuid4
 class TradeReq:
     def generate_dict(self):
         ret = copy.copy(self.__dict__)
-        ret['player0'] = self.player0.get_uuid()
-        ret['player1'] = self.player1.get_uuid()
+        ret['pl0'] = self.pl0.get_uuid()
+        ret['pl1'] = self.pl1.get_uuid()
         return ret
 
-    def __init__(self, player_0, player_1, player0_items, player1_items):
+    def __init__(self, player_0, player_1, pl0_items, pl1_items):
         self.uuid = uuid4().hex
-        self.player0 = player_0
-        self.player1 = player_1
-        self.player0_items = player0_items
-        self.player1_items = player1_items
+        self.pl0 = player_0
+        self.pl1 = player_1
+        self.pl0_items = pl0_items
+        self.pl1_items = pl1_items
         self.status = 'pending'
-        self.player0_status = 'accepted'
-        self.player1_status = 'declined'
+        self.pl0_status = 'accepted'
+        self.pl1_status = 'declined'
 
     def get_uuid(self):
         return self.uuid
 
     def accept(self, player):
-        if player.get_uuid() == self.player0.get_uuid():
-            self.player0_status = 'accepted'
-            self.player0 = player
+        if player.get_uuid() == self.pl0.get_uuid():
+            self.pl0_status = 'accepted'
+            self.pl0 = player
         else:
-            self.player1 = player
-            self.player1_status = 'accepted'
-        if self.player0_status == 'accepted' and self.player1_status == 'accepted':
-            self.execute()
+            self.pl1 = player
+            self.pl1_status = 'accepted'
+        if self.pl0_status == 'accepted' and self.pl1_status == 'accepted':
+            return True, "Accepted, " +  self.execute()
+        return True, "Accepted, dont't execute"
 
     def decline(self, player):
-        if player.get_uuid() == self.player0.get_uuid():
-            self.player0_status = 'declined'
+        if player.get_uuid() == self.pl0.get_uuid():
+            self.pl0_status = 'declined'
         else:
-            self.player1_status = 'declined'
+            self.pl1_status = 'declined'
 
     def can_execute(self):
-        if not (self.player0_status == 'accepted' and self.player1_status == 'accepted'):
+        if not (self.pl0_status == 'accepted' and self.pl1_status == 'accepted'):
             return False
-        for item in self.player0_items:
-            money = 0
-            match item['type']:
-                case 'money':
-                    money += item['data']
-                    if money > self.player0.money:
+        money = 0
+        for x in self.pl0_items:
+            match x['type']:
+                case "room":
+                    if not x['data'] in self.pl0.rooms:
                         return False
-                case 'equipment':
-                    if self.player0.get_equipment(item['data'] is None):
+                case "equipment":
+                    if not self.pl0.get_equipment(x['data']):
                         return False
-                case 'room':
-                    if item['data'] not in self.player0.rooms.keys():
+                case "money":
+                    money = x['data']
+                case _:
+                    return False
+        if self.pl0.money < money:
+            return False
+        money = 0
+        for x in self.pl1_items:
+            match x['type']:
+                case "room":
+                    if not x['data'] in self.pl1.rooms:
                         return False
-        for item in self.player1_items:
-            money = 0
-            match item['type']:
-                case 'money':
-                    money += item['data']
-                    if money > self.player1.money:
+                case "equipment":
+                    if not self.pl1.get_equipment(x['data']):
                         return False
-                case 'equipment':
-                    if self.player1.get_equipment(item['data'] is None):
-                        return False
-                case 'room':
-                    if item['data'] not in self.player1.rooms.keys():
-                        return False
+                case "money":
+                    money = x['data']
+                case _:
+                    return False
+        if self.pl1.money < money:
+            return False
+        return True
 
     def execute(self):
         if not self.can_execute():
             self.status = 'failed'
-            return
+            return "Failed"
         self.status = 'executed'
-        for item in self.player0_items:
+        for item in self.pl0_items:
             match item['type']:  # удаляем предметы у первого игрока и добавляем второму
                 case 'money':
-                    self.player0.buy(item['data'])
-                    self.player1.sell(item['data'])
+                    self.pl0.buy(item['data'])
+                    self.pl1.sell(item['data'])
                 case 'equipment':
                     self.sell_equipment(item['data'], 0)
                 case 'room':
                     self.sell_room(item['data'], 0)
-        for item in self.player1_items:
+        for item in self.pl1_items:
             match item['type']:  # удаляем предметы у второго игрока и добавляем первому
                 case 'money':
-                    self.player1.buy(item['data'])
-                    self.player0.sell(item['data'])
+                    self.pl1.buy(item['data'])
+                    self.pl0.sell(item['data'])
                 case 'equipment':
                     self.sell_equipment(item['data'], 1)
                 case 'room':
                     self.sell_room(item['data'], 1)
+        return "Executed"
 
     def sell_equipment(self, eq_uuid, seller_num):
-        seller = self.player0 if seller_num == 0 else self.player1
-        buyer = self.player1 if seller_num == 0 else self.player0
+        seller = self.pl0 if seller_num == 0 else self.pl1
+        buyer = self.pl1 if seller_num == 0 else self.pl0
         if eq_uuid in seller.equipments.keys():
             eq = seller.equipments[eq_uuid]
             del seller.equipments[eq_uuid]
@@ -107,12 +114,12 @@ class TradeReq:
         buyer.equipments[eq.get_uuid()] = eq
 
     def sell_room(self, ro_uuid, seller_num):
-        seller = self.player0 if seller_num == 0 else self.player1
-        buyer = self.player1 if seller_num == 0 else self.player0
+        seller = self.pl0 if seller_num == 0 else self.pl1
+        buyer = self.pl1 if seller_num == 0 else self.pl0
         ro = seller.rooms[ro_uuid]
         eq = ro.get_equipment()
         if eq is not None:
-            seller.move_equipment_from_room(eq.get_uuid())
+            seller.move_equipment_from_room(ro.get_uuid())
         ro.staff_count = {
             'doctor': 0,
             'lab_assistant': 0
@@ -124,23 +131,23 @@ class TradeReq:
 class PledgeReq:
     def generate_dict(self):
         ret = copy.copy(self.__dict__)
-        ret['player0'] = self.player0.get_uuid()
-        ret['player1'] = self.player1.get_uuid()
+        ret['pl0'] = self.pl0.get_uuid()
+        ret['pl1'] = self.pl1.get_uuid()
         return ret
 
     def __init__(self, player_0, player_1, purchase_price: int, redemption_price: int, items: array, end_month: int):
         self.uuid = uuid4().hex
-        self.player0 = player_0
-        self.player1 = player_1
+        self.pl0 = player_0
+        self.pl1 = player_1
         player_0.pledges[self.uuid] = self
         player_1.pledges[self.uuid] = self
         self.purchase_price = purchase_price
         self.redemption_price = redemption_price
         self.items = items
         self.status = 'pending'
-        self.player0_status = 'accepted'
-        self.player0.pledges[self.uuid] = self
-        self.player1_status = 'canceled'
+        self.pl0_status = 'accepted'
+        self.pl0.pledges[self.uuid] = self
+        self.pl1_status = 'canceled'
         self.end_month = end_month
 
     def get_uuid(self):
@@ -150,35 +157,35 @@ class PledgeReq:
         return self.status
 
     def accept(self, player) -> tuple[bool, str]:
-        if player.get_uuid() == self.player0.get_uuid():
-            self.player0 = player
-            self.player0_status = 'accepted'
+        if player.get_uuid() == self.pl0.get_uuid():
+            self.pl0 = player
+            self.pl0_status = 'accepted'
         else:
-            self.player1 = player
+            self.pl1 = player
             player.pledges[self.uuid] = self
-            self.player1_status = 'accepted'
-        if self.player0_status == 'accepted' and self.player1_status == 'accepted' and self.status == 'pending':
+            self.pl1_status = 'accepted'
+        if self.pl0_status == 'accepted' and self.pl1_status == 'accepted' and self.status == 'pending':
             return self.execute_pledge()
         else:
             return True, "accepted, waiting for another player to accept, or pledge is already executed"
 
     def decline(self, player):
-        if player.get_uuid() == self.player0.get_uuid():
-            self.player0_status = 'canceled'
+        if player.get_uuid() == self.pl0.get_uuid():
+            self.pl0_status = 'canceled'
         else:
-            self.player1_status = 'canceled'
+            self.pl1_status = 'canceled'
 
     def execute_pledge(self):  # начало, забираем вещи у игрока 0, зачисляем деньги игроку 0
         if self.validate_start():
-            self.player1.buy(self.purchase_price)
-            self.player0.sell(self.purchase_price)
+            self.pl1.buy(self.purchase_price)
+            self.pl0.sell(self.purchase_price)
             for x in self.items:
                 match x['type']:
                     case 'equipment':
-                        if x['data'].get_uuid() in self.player0.equipments:
-                            del self.player0.equipments[x['data'].get_uuid()]
+                        if x['data'].get_uuid() in self.pl0.equipments:
+                            del self.pl0.equipments[x['data'].get_uuid()]
                         else:
-                            self.player0.rooms[self.player0.equipment_rooms[x['data'].get_uuid()]].set_eqipment(None)
+                            self.pl0.rooms[self.pl0.equipment_rooms[x['data'].get_uuid()]].set_eqipment(None)
                     case 'room':
                         x['data'].staff_count = {
                             'doctor': 0,
@@ -186,8 +193,8 @@ class PledgeReq:
                         }
                         eq = x['data'].get_equipment()
                         if eq is not None:
-                            self.player0.move_equipment_from_room(eq.get_uuid())
-                        del self.player0.rooms[x['data'].get_uuid()]
+                            self.pl0.move_equipment_from_room(x['data'].get_uuid())
+                        del self.pl0.rooms[x['data'].get_uuid()]
             self.status = 'executed'
             return True, 'Pledge executed'
         else:
@@ -198,12 +205,12 @@ class PledgeReq:
         for x in self.items:
             match x['type']:
                 case 'equipment':
-                    if self.player0.get_equipment(x['data'].get_uuid()) is None:
+                    if self.pl0.get_equipment(x['data'].get_uuid()) is None:
                         return False
                 case 'room':
-                    if x['data'].get_uuid() not in self.player0.rooms:
+                    if x['data'].get_uuid() not in self.pl0.rooms:
                         return False
-        if self.player1.money < self.purchase_price:
+        if self.pl1.money < self.purchase_price:
             return False
         return True
 
@@ -212,24 +219,24 @@ class PledgeReq:
         for x in self.items:
             match x['type']:
                 case 'equipment':
-                    self.player0.equipments[x['data'].get_uuid()] = x['data']
+                    self.pl0.equipments[x['data'].get_uuid()] = x['data']
                 case 'room':
-                    self.player0.rooms[x['data'].get_uuid()] = x['data']
-        self.player0.buy(self.redemption_price)
-        self.player1.sell(self.redemption_price)
+                    self.pl0.rooms[x['data'].get_uuid()] = x['data']
+        self.pl0.buy(self.redemption_price)
+        self.pl1.sell(self.redemption_price)
 
     def execute_give_bail(self):
         if self.status == 'executed':
             self.status = 'expired'
-            del self.player0.pledges[self.uuid]
-            del self.player1.pledges[self.uuid]
+            del self.pl0.pledges[self.uuid]
+            del self.pl1.pledges[self.uuid]
             for x in self.items:
                 match x['type']:
                     case 'equipment':
-                        x['data'].owner = self.player1.get_uuid()
-                        self.player1.equipments[x['data'].get_uuid()] = x['data']
+                        x['data'].owner = self.pl1.get_uuid()
+                        self.pl1.equipments[x['data'].get_uuid()] = x['data']
                     case 'room':
-                        self.player1.rooms[x['data'].get_uuid()] = x['data']
+                        self.pl1.rooms[x['data'].get_uuid()] = x['data']
 
 
 class PledgeBank:
@@ -261,7 +268,7 @@ class PledgeBank:
                 case 'room':
                     x['data'] = self.player.rooms[x['data']]
                     if x['data'].get_equipment() is not None:
-                        self.player.move_equipment_from_room(x['data'].get_equipment().get_uuid())
+                        self.player.move_equipment_from_room(x['data'].get_uuid())
                     del self.player.rooms[x['data'].get_uuid()]
                     x['data'].staff_count = {
                         'doctor': 0,
@@ -307,20 +314,20 @@ class PowerSell:
         self.player_0 = player_0
         self.player_1 = player_1
         self.items: list[dict] = items
-        self.price: int = 0
+        self.price: int = price
         self.status = 'waiting'
-        self.pl_0_status: str = 'accepted'
-        self.pl_1_status: str = 'canceled'
+        self.pl0_status: str = 'accepted'
+        self.pl1_status: str = 'canceled'
         player_0.power_sells[self.uuid] = self
         player_1.power_sells[self.uuid] = self
 
     def cancel(self, pl):
         if self.status == 'waiting':
             if self.player_0.get_uuid() == pl.get_uuid():
-                self.pl_0_status = 'canceled'
+                self.pl0_status = 'canceled'
                 return True
             elif self.player_1.get_uuid() == pl.get_uuid():
-                self.pl_1_status = 'canceled'
+                self.pl1_status = 'canceled'
                 return True
             else:
                 return False
@@ -329,10 +336,10 @@ class PowerSell:
 
     def accept(self, pl):
         if pl == self.player_0:
-            self.pl_0_status = 'accepted'
+            self.pl0_status = 'accepted'
         elif pl == self.player_1:
-            self.pl_1_status = 'accepted'
-        if self.pl_0_status == 'accepted' and self.pl_1_status == 'accepted':
+            self.pl1_status = 'accepted'
+        if self.pl0_status == 'accepted' and self.pl1_status == 'accepted':
             return self.execute()
 
     def execute(self):

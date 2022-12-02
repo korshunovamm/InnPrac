@@ -3,7 +3,7 @@ import json
 from tornado import websocket
 
 from server.api.game.actions import player
-from server.api.game.actions.entitys import room, equipment
+from server.api.game.actions.entitys import room, equipment, tradeReq
 from server.api.users.login.auth import get_user_info
 from server.mongoDB import GameMongo
 
@@ -76,22 +76,6 @@ class ConnectToGame(websocket.WebSocketHandler):
             "action": equipment.buy_service_maintenance,
             "required_data": [{"name": "eq_uuid", "optional": False}]
         },
-        # "new_bank_deposit": {
-        #     "need_data": True,
-        #     "action": player.new_bank_deposit,
-        #     "required_data": [{"name": "items", "optional": False}]
-        # },
-        # "redeem_bank_pledge": {
-        #     "need_data": True,
-        #     "action": player.redeem_bank_deposit,
-        #     "required_data": [{"name": "plg_uuid", "optional": False}]
-        # },
-        # "new_deal": {
-        #     "need_data": True,
-        #     "action": player.new_deal,
-        #     "required_data": [{"name": "my_trade_items", "optional": False},
-        #                     {'name': "partner_uuid", "optional": False}, {'name': "partner_items", "optional": False}]
-        # },
         "set_orders_input": {
             "need_data": True,
             "action": player.set_orders_input,
@@ -123,11 +107,17 @@ class ConnectToGame(websocket.WebSocketHandler):
             "action": equipment.buy_reagents,
             "required_data": [{"name": "eq_uuid", "optional": False}, {"name": "count", "optional": False}]
         },
-        # "new_pledge": {
-        #     "need_data": True,
-        #     "action": player.new_pledge,
-        #     "required_data": []
-        # }
+        "new_trade_request": {
+            "need_data": True,
+            "action": tradeReq.new,
+            "required_data": [{"name": "pl_1_uuid", "optional": False},
+                              {"name": "pl_0_items", "optional": False}, {"name": "pl_1_items", "optional": False}]
+        },
+        "accept_trade_request": {
+            "need_data": True,
+            "action": tradeReq.accept,
+            "required_data": [{"name": "tr_uuid", "optional": False}]
+        },
     }
 
     def open(self):
@@ -195,6 +185,8 @@ class ConnectToGame(websocket.WebSocketHandler):
     @staticmethod
     def send_update(game_uuid, pl_uuid):
         if game_uuid in connections:
+            game = GameMongo.get_game(game_uuid)
             for i in connections[game_uuid]:
                 if i.pl_uuid != pl_uuid:
+                    i.game = game
                     i.write_message({"type": "update", "game": GameMongo.get_game(game_uuid).generate_dict()})

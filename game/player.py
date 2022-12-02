@@ -27,11 +27,14 @@ class Player(object):
         ret['equipments'] = {}
         for x in self.equipments:
             ret['equipments'][x] = self.equipments[x].generate_dict()
+        ret['trade_requests'] = {}
+        for x in self.trade_requests:
+            ret['trade_requests'][x] = self.trade_requests[x].generate_dict()
         ret['pledges'] = {}
         for x in self.pledges:
             ret['pledges'][x] = self.pledges[x].generate_dict()
         ret['bank_pledges'] = {}
-        for x in self.pledges:
+        for x in self.bank_pledges:
             ret['bank_pledges'][x] = self.bank_pledges[x].generate_dict()
         ret['power_sells'] = {}
         for x in self.power_sells:
@@ -356,7 +359,7 @@ class Player(object):
         if ro_from.get_staff()[staff_type] > 0 and \
                 ro_to.get_staff()[staff_type] < ro_to.get_max_staff()[staff_type]:
             ro_from.remove_staff(staff_type)
-            ro_to.add_staff(staff_type)
+            ro_to.add_staff(staff_type, 1)
             return True
         else:
             return False
