@@ -19,7 +19,9 @@ def new(websocket, data):
                 if not pl_0.get_equipment(x['data']):
                     return dict(result="error", message="Invalid data")
             case "money":
-                money+=x["data"]
+                if not type(x['data']) == int:
+                    return dict(result="error", message="Invalid data")
+                money += x["data"]
             case _:
                 return dict(result="error", message="Invalid data")
     if money > pl_0.money:
@@ -34,7 +36,9 @@ def new(websocket, data):
                 if not pl_1.get_equipment(x['data']):
                     return dict(result="error", message="Invalid data")
             case "money":
-                money+=x["data"]
+                if not type(x['data']) == int:
+                    return dict(result="error", message="Invalid data")
+                money += x["data"]
             case _:
                 return dict(result="error", message="Invalid data")
     if money > pl_1.money:
