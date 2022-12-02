@@ -9,6 +9,7 @@ def new(websocket, data):
         return dict(result="error", message="Invalid data")
     if websocket.pl_uuid == data['pl_1_uuid']:
         return dict(result="error", message="Invalid data")
+    money = 0
     for x in data['pl_0_items']:
         match x['type']:
             case "room":
@@ -18,9 +19,12 @@ def new(websocket, data):
                 if not pl_0.get_equipment(x['data']):
                     return dict(result="error", message="Invalid data")
             case "money":
-                pass
+                money+=x["data"]
             case _:
                 return dict(result="error", message="Invalid data")
+    if money > pl_0.money:
+        return dict(result="error", message="Invalid data")
+    money = 0
     for x in data['pl_1_items']:
         match x['type']:
             case "room":
@@ -30,9 +34,11 @@ def new(websocket, data):
                 if not pl_1.get_equipment(x['data']):
                     return dict(result="error", message="Invalid data")
             case "money":
-                pass
+                money+=x["data"]
             case _:
                 return dict(result="error", message="Invalid data")
+    if money > pl_1.money:
+        return dict(result="error", message="Invalid data")
     trade = game.new_trade_req(websocket.pl_uuid, data["pl_1_uuid"], data["pl_0_items"], data["pl_1_items"])
     if trade[0]:
         return dict(result="ok", message="Trade request sent", data=trade[1].generate_dict())
