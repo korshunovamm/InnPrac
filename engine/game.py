@@ -1,11 +1,15 @@
 import copy
 import json
 from uuid import uuid4
+import os
 
 from engine.entitys.events import Events
 from engine.player import Player
 from engine.deal import TradeReq, PledgeReq
+from pathlib import Path
 
+abs_path = os.path.realpath(__file__)
+data_abs_path = str(Path(abs_path).parent.parent) + "/data"
 
 def read_file(path: str):
     f = open(path, 'r')
@@ -189,7 +193,8 @@ class Game(object):
 
     def buy_equipment(self, lab_uuid, eq_type, eq_color, credit: bool):
         lab: Player = self.labs[lab_uuid]
-        equipment_info = json.loads(read_file('data/equipments.json'))[eq_type]
+        path_to_file = data_abs_path + "/equipments.json"
+        equipment_info = json.loads(read_file(path_to_file))[eq_type]
         amount: int = self.equipments[eq_type]
         if eq_type not in ['reporting', 'pre_analytic']:
             amount: int = amount[eq_color]
