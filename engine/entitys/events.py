@@ -217,7 +217,6 @@ class Event:  # Event class
 
 
 class Events:
-
     @staticmethod
     def generate_events():
         events = []
@@ -226,10 +225,11 @@ class Events:
                 events.append(Event(x))
         return events
 
-    baseEvents = generate_events()
+
     events = []
 
     def __init__(self):
+        self.baseEvents = Events.generate_events()
         random.shuffle(self.baseEvents)
         self.events = copy.copy(self.baseEvents)
 

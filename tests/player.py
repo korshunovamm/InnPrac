@@ -1,6 +1,6 @@
 import unittest
 
-from game.player import Player
+from engine.player import Player
 
 
 class DynamicBaseParams(unittest.TestCase):

@@ -3,9 +3,9 @@ import json
 import random
 from uuid import uuid4
 
-from game.entitys.equipment import Equipment
-from game.entitys.order import Order
-from game.entitys.room import Room
+from engine.entitys.equipment import Equipment
+from engine.entitys.order import Order
+from engine.entitys.room import Room
 
 
 def read_file(path: str):

@@ -1,7 +1,7 @@
 import copy
 from uuid import uuid4
 
-from game.entitys.equipment import Equipment
+from engine.entitys.equipment import Equipment
 
 
 class Room:

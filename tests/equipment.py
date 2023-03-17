@@ -1,6 +1,6 @@
 import unittest
 
-from game.game import Game
+from engine.game import Game
 
 
 class Buy(unittest.TestCase):

@@ -2,9 +2,9 @@ import copy
 import json
 from uuid import uuid4
 
-from game.entitys.events import Events
-from game.player import Player
-from game.deal import TradeReq, PledgeReq
+from engine.entitys.events import Events
+from engine.player import Player
+from engine.deal import TradeReq, PledgeReq
 
 
 def read_file(path: str):

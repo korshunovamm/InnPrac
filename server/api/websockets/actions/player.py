@@ -1,4 +1,4 @@
-from game.deal import PledgeBank, PledgeReq
+from engine.deal import PledgeBank, PledgeReq
 
 
 def buy_logistic_service(websocket, data):

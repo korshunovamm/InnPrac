@@ -2,8 +2,8 @@ import random
 import unittest
 from math import inf
 
-from game.entitys.room import Room
-from game.game import Game
+from engine.entitys.room import Room
+from engine.game import Game
 
 
 class Buy(unittest.TestCase):
