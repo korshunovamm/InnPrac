@@ -1,6 +1,9 @@
 import random
 import unittest
 from math import inf
+import sys
+
+sys.path.append('../')
 
 from engine.entitys.room import Room
 from engine.game import Game
