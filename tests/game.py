@@ -2,9 +2,7 @@ import unittest
 import sys
 
 sys.path.append('../')
-
 from engine.game import Game
-
 
 class StaticBaseParams(unittest.TestCase):
     game = Game("test")
