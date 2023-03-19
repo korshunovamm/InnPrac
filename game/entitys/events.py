@@ -3,6 +3,8 @@ import json
 import os
 import random
 
+from game.entitys.order import Order
+
 
 class Event:  # Event class
     def generate_dict(self):
@@ -194,7 +196,7 @@ class Event:  # Event class
 
     @staticmethod
     def action24(pl):
-        orders = {
+        orders_count = {
             "blue": 0,
             "grey": 0,
             "yellow": 0,
@@ -206,10 +208,13 @@ class Event:  # Event class
             eq = pl.rooms[x].get_equipment()
             if eq is not None:
                 if eq.type != "reporting" and eq.type != "pre_analytic":
-                    orders[eq.get_color()] += eq.get_max_power()
+                    orders_count[eq.get_color()] += eq.get_max_power()
 
         pl.orders_is_calculated = True
-        pl.orders = orders
+        for orders_color in orders_count:
+            for _ in range(orders_count[orders_color]):
+                order = Order(orders_color, pl, pl.get_payment_type())
+                pl.orders[order.get_uuid()] = order
 
     @staticmethod
     def action25(pl):
