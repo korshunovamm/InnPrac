@@ -47,6 +47,8 @@ class Equipment(object):
     def get_expenses(self):
         return self.expenses
 
+    def get_services(self):
+        return self.services
     # конструктор
     def __init__(self, owner, eq_type: str, eq_color: str):
         self.max_power = 0
