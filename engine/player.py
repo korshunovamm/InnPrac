@@ -21,7 +21,7 @@ def read_file(path: str):
     return ret
 
 
-class Player(object):
+class Player:
     def generate_dict(self):
         ret = copy.copy(self.__dict__)
         ret['orders'] = {}
@@ -36,16 +36,15 @@ class Player(object):
         ret['trade_requests'] = {}
         for x in self.trade_requests:
             ret['trade_requests'][x] = self.trade_requests[x].generate_dict()
-        ret['pledges'] = {}
-        for x in self.pledges:
-            ret['pledges'][x] = self.pledges[x].generate_dict()
+        ret['pledge_requests'] = {}
+        for x in self.pledge_requests:
+            ret['pledge_requests'][x] = self.pledge_requests[x].generate_dict()
         ret['bank_pledges'] = {}
         for x in self.bank_pledges:
             ret['bank_pledges'][x] = self.bank_pledges[x].generate_dict()
         ret['power_sells'] = {}
         for x in self.power_sells:
             ret['power_sells'][x] = self.power_sells[x].generate_dict()
-
         if self.last_event is not None:
             ret['last_event'] = self.last_event.generate_dict()
         return ret
@@ -54,7 +53,6 @@ class Player(object):
     def __init__(self, name: str):
         # динамичные параметры игрока
         self.last_event = None
-        self.pledges_items: dict[str, list] = {}
         self.pay_type: str = 'post_pay'
         self.power_sells: dict = {}  # сбрасывать каждый месяц
         self.my_power: list[dict[str, str or int]] = []  # сбрасывать каждый месяц
@@ -72,7 +70,7 @@ class Player(object):
             'logistic': False,
             'training': False
         }
-        self.pledges = {}
+        self.pledge_requests = {}
         self.bank_pledges = {}
         self.trade_requests = {}
         self.promotion: int = 0  # сбрасывать каждый месяц
@@ -99,7 +97,7 @@ class Player(object):
         self.uuid = uuid4().hex
         self.equipments_rooms: dict[str, str] = {}
         self.orders: dict[str, Order] = {}  # сбрасывать каждый месяц
-        self.orders_reputation = 0  # сбрасывать каждый месяц
+        self.temp_reputation = 0  # сбрасывать каждый месяц
 
     # имена, uuid и пароль
 
@@ -132,8 +130,7 @@ class Player(object):
         if credit:
             self.credit += int(round(price * 1.5, 0))
             return True
-        else:
-            self.money -= price
+        self.money -= price
 
     # продажа
     def sell(self, price: int):
@@ -145,18 +142,15 @@ class Player(object):
 
     @staticmethod
     def order_level_to_amount(order_level: int):
-        lev: dict = {
-            1: [0, 0, 0, 1, 2],
-            2: [0, 0, 1, 2, 3],
-            3: [0, 1, 2, 3, 4],
-            4: [1, 2, 3, 4, 4]
-        }
+        lev: list = [
+            [0], [0, 0, 0, 1, 2], [0, 0, 1, 2, 3], [0, 1, 2, 3, 4], [1, 2, 3, 4, 4]
+        ]
         return random.choice(lev[order_level])
 
     def orders_refund(self):
         if self.pay_type == 'pre_pay':
-            for x in self.orders:
-                if not self.orders[x].is_complite():
+            for order_name in self.orders:
+                if not self.orders[order_name].is_complite():
                     self.money -= 30
 
     def calc_orders_reputation(self):
@@ -165,47 +159,45 @@ class Player(object):
         for x in self.orders:
             if self.orders[x].is_complite():
                 complete_orders_count += 1
-        if orders_count == 0:
-            self.orders_reputation = 0
-        else:
+        if orders_count != 0:
             orders_reputation = complete_orders_count / orders_count
             if complete_orders_count == 0:
-                self.orders_reputation = -5
+                self.base_reputation -= 5
             elif orders_reputation == 1:
-                self.orders_reputation = 5
+                self.base_reputation += 5
             elif orders_reputation >= 0.5:
-                self.orders_reputation = 3
+                self.base_reputation += 3
             else:
-                self.orders_reputation = -3
+                self.base_reputation -= 3
 
     def calc_reputation(self):
-        ret: int = self.promotion + self.orders_reputation + self.base_reputation
+        rep: int = self.promotion + self.temp_reputation + self.base_reputation
         if self.services['logistic']:
-            ret += 1
+            rep += 1
         if self.services['training']:
-            ret += 1
+            rep += 1
         for ro in self.rooms.values():
-            ret += ro.get_reputation()
+            rep += ro.get_reputation()
         for eq in self.equipments.values():
-            ret += eq.get_reputation()
-        self.reputation = ret
-        return ret
+            rep += eq.get_reputation()
+        self.reputation = rep
+        return rep
 
     def set_orders_input(self, orders_input):
         self.orders_input = orders_input
 
     def calc_orders_count(self, orders_level):
         if self.orders_is_calculated:
-            return
+            return self.get_orders()
         self.orders_is_calculated = True
         self.orders = {}
-        for x in self.orders_input:
-            if self.orders_input[x]:
-                orders = self.order_level_to_amount(orders_level) + self.orders_correction[x]
-                for z in range(orders):
-                    order = Order(x, self, self.pay_type)
+        for order_color in self.orders_input:
+            if self.orders_input[order_color]:
+                orders_count = self.order_level_to_amount(orders_level) + self.orders_correction[order_color]
+                for _ in range(orders_count):
+                    order = Order(order_color, self, self.pay_type)
                     self.orders[order.get_uuid()] = order
-        return self.orders
+        return self.get_orders()
 
     def get_orders(self):
         return self.orders
@@ -258,7 +250,7 @@ class Player(object):
     def can_buy_equipment(self, equipment_info):
         return self.money >= equipment_info['price']
 
-    def buy_equipment(self, eq_type: str, eq_color: str) -> object:
+    def buy_equipment(self, eq_type: str, eq_color: str):
         eq = Equipment(self, eq_type, eq_color)
         self.equipments[eq.get_uuid()] = eq
         return eq
@@ -305,6 +297,56 @@ class Player(object):
             return True
         else:
             return False
+
+    def can_upgrade_equipment(self, eq_uuid: str, eq_new_type: str):
+        equipment_data = json.loads(read_file('data/equipments.json'))
+        equipment_prices = {
+            "hand": equipment_data['hand']['price'],
+            "semi_manual": equipment_data['semi_manual']['price'],
+            "auto": equipment_data['auto']['price']
+        }
+        if eq_uuid in self.equipments:
+            eq: Equipment = self.equipments[eq_uuid]
+        elif eq_uuid in self.equipments_rooms:
+            eq: Equipment = self.rooms[self.equipments_rooms[eq_uuid]].get_equipment()
+        else:
+            return False
+        if eq.get_type() not in ["hand", "semi_manual"] or eq_new_type not in ["semi_manual", "auto"]:
+            return False
+        eq_price = equipment_prices[eq.get_type()]
+        eq_new_price = equipment_prices[eq_new_type]
+        upgrade_price = eq_new_price - eq_price
+        return self.money >= upgrade_price
+
+    def upgrade_equipment(self, eq_uuid: str, eq_new_type: str):
+        if not self.can_upgrade_equipment(eq_uuid, eq_new_type):
+            return False, None
+        equipment_data = json.loads(read_file('data/equipments.json'))
+        equipment_prices = {
+            "hand": equipment_data['hand']['price'],
+            "semi_manual": equipment_data['semi_manual']['price'],
+            "auto": equipment_data['auto']['price']
+        }
+        eq = self.get_equipment(eq_uuid)
+        eq_price = equipment_prices[eq.get_type()]
+        eq_new_price = equipment_prices[eq_new_type]
+        upgrade_price = eq_new_price - eq_price
+        self.buy(upgrade_price)
+        new_eq: Equipment = Equipment(self, eq_new_type, eq.get_color())
+        if eq.in_room:
+            ro_uuid = self.equipments_rooms[eq_uuid]
+            ro = self.rooms[ro_uuid]
+            new_eq.set_room(ro)
+            self.equipments_rooms[new_eq.get_uuid()] = ro_uuid
+            ro.set_equipment(new_eq)
+        else:
+            self.equipments[new_eq.get_uuid()] = new_eq
+        if eq.is_broken():
+            new_eq.break_it()
+        new_eq.services = eq.get_services()
+        new_eq.buy_reagents(eq.get_reagents())
+        new_eq.update_max_power()
+        return True, new_eq
 
     def get_equipment(self, eq_uuid: str):
         if eq_uuid in self.equipments:
@@ -409,14 +451,8 @@ class Player(object):
     def add_trade_req(self, trade_request):
         self.trade_requests[trade_request.get_uuid()] = trade_request
 
-    def accept_trade_req(self, trade_uuid):
-        self.trade_requests[trade_uuid].accept(self)
-
-    def decline_trade_req(self, trade_uuid):
-        self.trade_requests[trade_uuid].decline(self)
-
     def dump_params(self):
-        self.orders_reputation = 0
+        self.temp_reputation = 0
         self.orders = {}
         self.orders_correction = {
             'yellow': 0,
@@ -429,14 +465,14 @@ class Player(object):
         self.promotion = 0
         self.orders_is_calculated = False
         self.orders_input = {
-            'yellow': 0,
-            'red': 0,
-            'blue': 0,
-            'green': 0,
-            'purple': 0,
-            'grey': 0
+            'yellow': False,
+            'red': False,
+            'blue': False,
+            'green': False,
+            'purple': False,
+            'grey': False
         }
-        self.events: dict[str, bool] = {
+        self.events = {
             'saved_from_negative_analytics': self.events['saved_from_negative_analytics'],
             'power_is_calculated': False,
             'power_reduction': False,  # снижение мощности
