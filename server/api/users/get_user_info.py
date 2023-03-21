@@ -10,10 +10,13 @@ class GetUserInfo(RequestHandler):
         if jwt_text:
             status, user = get_user_info(jwt_text)
             if status:
+                games = {}
                 for x in user['games']:
                     ga = GameMongo.get_game(x)
-                    user['games'][x] = dict(uuid=x, name=ga.get_name(), status=ga.get_status(),
-                                            pl_uuid=user['games'][x])
+                    if ga is not None:
+                        games[x] = dict(uuid=x, name=ga.get_name(), status=ga.get_status(),
+                                        pl_uuid=user['games'][x])
+                user['games'] = games
                 del user['password']
                 del user['_id']
                 self.write({'status': 'ok', 'data': user})

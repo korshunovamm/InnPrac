@@ -23,6 +23,7 @@ class Authorization(tornado.web.RequestHandler):
                 else:
                     if user_mongo['password'] == sha256(data['password'][0]).hexdigest():
                         jwt_text = jwt.encode({"login": data['login'][0].decode('utf-8'),
+                                               "privilege": user_mongo["privilege"],
                                                "exp": str(int(round(datetime.now().timestamp())) + 2629743)},
                                               config["jwt_secret"], algorithm="HS256")
                         self.set_cookie("user", jwt_text, httponly=True)
