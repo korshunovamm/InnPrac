@@ -79,7 +79,7 @@ class Move(unittest.TestCase):
         ro = game.buy_room(pl.get_uuid())[1]
         eq = game.buy_equipment(pl.get_uuid(), "pre_analytic", None, False)[1]
         game.move_equipment_to_room(pl.get_uuid(), ro.get_uuid(), eq.get_uuid())
-        game.move_equipment_from_room(pl.get_uuid(), eq.get_uuid())
+        game.move_equipment_from_room(pl.get_uuid(), ro.get_uuid())
         self.assertEqual(11, game.equipments["pre_analytic"])
         self.assertIsNone(ro.get_equipment())
         self.assertEqual(pl.equipments[eq.get_uuid()], eq)
