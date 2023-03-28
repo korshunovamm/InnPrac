@@ -1,6 +1,9 @@
 import unittest
+import sys
 
-from game.player import Player
+sys.path.append('../')
+
+from engine.player import Player
 
 
 class DynamicBaseParams(unittest.TestCase):

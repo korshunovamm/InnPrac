@@ -2,10 +2,16 @@ import copy
 import json
 import random
 from uuid import uuid4
+import os
 
-from game.entitys.equipment import Equipment
-from game.entitys.order import Order
-from game.entitys.room import Room
+from engine.entitys.equipment import Equipment
+from engine.entitys.order import Order
+from engine.entitys.room import Room
+from pathlib import Path
+
+
+abs_path = os.path.realpath(__file__)
+data_abs_path = str(Path(abs_path).parent.parent) + "/data"
 
 
 def read_file(path: str):
@@ -386,7 +392,7 @@ class Player:
     # купить персонал
     def buy_staff(self, ro_uuid: str, staff_type: str, amount: int):
         ro = self.get_room(ro_uuid)
-        staff_info = json.loads(read_file('data/staff.json'))[staff_type]
+        staff_info = json.loads(read_file(data_abs_path + "/staff.json"))[staff_type]
         if self.money >= staff_info['price'] and \
                 ro.get_staff()[staff_type] < ro.get_max_staff()[staff_type]:
             self.buy(staff_info['price'])

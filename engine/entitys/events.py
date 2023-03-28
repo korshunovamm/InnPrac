@@ -2,6 +2,12 @@ import copy
 import json
 import os
 import random
+from pathlib import Path
+
+abs_path = os.path.realpath(__file__)
+data_abs_path = str(Path(abs_path).parent.parent.parent) + "/data"
+
+from engine.entitys.order import Order
 
 from game.entitys.order import Order
 
@@ -222,19 +228,21 @@ class Event:  # Event class
 
 
 class Events:
-
     @staticmethod
     def generate_events():
+        path_to_file = data_abs_path + "/events.json"
         events = []
-        for x in json.loads(open(os.getcwd() + "/data/events.json", encoding='utf-8').read()):
+        f = open(path_to_file, encoding='utf-8')
+        for x in json.loads(f.read()):
             for i in range(x['amount']):
                 events.append(Event(x))
+        f.close()
         return events
 
-    baseEvents = generate_events()
     events = []
 
     def __init__(self):
+        self.baseEvents = Events.generate_events()
         random.shuffle(self.baseEvents)
         self.events = copy.copy(self.baseEvents)
 

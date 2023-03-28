@@ -3,8 +3,14 @@ import json
 from cmath import inf
 from uuid import uuid4
 
-from game.entitys.order import Order
+from engine.entitys.order import Order
 
+import os
+from pathlib import Path
+
+
+abs_path = os.path.realpath(__file__)
+data_abs_path = str(Path(abs_path).parent.parent.parent) + "/data"
 
 def read_file(path: str):
     f = open(path, 'r')
@@ -13,7 +19,8 @@ def read_file(path: str):
     return ret
 
 
-equData = json.loads(read_file('data/equipments.json'))
+# path_to_file = str(Path(abs_path).parent.parent.parent) + "/data/equipments.json"
+equData = json.loads(read_file(data_abs_path+"/equipments.json"))
 
 
 class Equipment(object):
@@ -251,7 +258,7 @@ class Equipment(object):
                     if order.payment_type == 'post_pay':
                         order.owner.money += 20
                 return True
-            elif self.type in ['hand', 'semi_manual', 'auto'] and order.get_progress()['analytic'] is False and\
+            elif self.type in ['hand', 'semi_manual', 'auto'] and order.get_progress()['analytic'] is False and \
                     order.get_color() == self.color:
                 self.power -= 1
                 order.progress['analytic'] = True

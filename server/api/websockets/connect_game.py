@@ -2,8 +2,8 @@ import json
 
 from tornado import websocket
 
-from server.api.game.actions import player
-from server.api.game.actions.entitys import room, equipment, tradeReq
+from server.api.websockets.actions import player
+from server.api.websockets.actions.entitys import room, equipment, tradeReq
 from server.api.users.login.auth import get_user_info
 from server.mongoDB import GameMongo
 

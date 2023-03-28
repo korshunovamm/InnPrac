@@ -3,7 +3,7 @@ import os
 
 import tornado.web
 
-from game.game import Game
+from engine.game import Game
 from server.api.users.login.auth import get_user_info
 from server.mongoDB import GameMongo
 
