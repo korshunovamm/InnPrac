@@ -9,9 +9,6 @@ data_abs_path = str(Path(abs_path).parent.parent.parent) + "/data"
 
 from engine.entitys.order import Order
 
-from game.entitys.order import Order
-
-
 class Event:  # Event class
     def generate_dict(self):
         ret = copy.copy(self.__dict__)

@@ -1,9 +1,12 @@
 import asyncio
+import os
 
 import tornado.web
 import yaml
 
+
 from server.routes import setup_routers
+
 try:
     from yaml import CLoader as Loader
 except ImportError:
@@ -19,4 +22,5 @@ async def main():
 
 
 if __name__ == "__main__":
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
     asyncio.run(main())

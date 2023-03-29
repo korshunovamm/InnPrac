@@ -1,0 +1,22 @@
+FROM python:3.11
+
+# Clone your Git repository
+#RUN git clone -c http.extraHeader='Authorization: Bearer BBDC-MTcwNDgyMDg0MTE1OlJUxzf6y9cZuJadbl4DX9jyWs7z' https://workshop.samcs.ru/bitbucket/scm/lbg/lab_work_backend.git /app \
+#	&& cd /app \
+#    && git pull origin master
+COPY . /app
+
+# Set the working directory to your Git repository's directory
+WORKDIR /app
+
+# Copy the config files into the container
+COPY configs/* configs/
+
+# Install any necessary packages for your Python script
+RUN pip install -r requirements.txt
+
+# Expose the port used by your Python script
+EXPOSE 8888
+
+# Run your Python script
+CMD ["python", "server_start.py"]

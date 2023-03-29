@@ -1,0 +1,2 @@
+FROM mongo
+CMD ["mongod", "--auth", "--bind_ip_all"]
