@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+  mongodb:
+    image: mongo
+    restart: on-failure
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: server
+      MONGO_INITDB_ROOT_PASSWORD: fi5t5mgk5gio54vkor4
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    command: mongod --auth --bind_ip_all
+  python:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    depends_on:
+      - mongodb
+    ports:
+      - "8888:8888"
+    volumes:
+      - python_data:/app/archive
+    command: python server_start.py
+volumes:
+  mongodb_data:
+  python_data:

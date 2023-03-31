@@ -1,7 +1,7 @@
-host: localhost # Hostname of mongodb
+host: mongodb # Hostname of mongodb
 port: 27017 # Port of mongodb
-login:  # Login of mongodb
-password:  # Password of mongodb
+login:  server # Login of mongodb
+password:  fi5t5mgk5gio54vkor4 # Password of mongodb
 database: Game # Database name
 users:
   collection: users # Collection name for users
