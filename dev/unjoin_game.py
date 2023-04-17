@@ -1,7 +1,7 @@
 import tornado.web
 
-from server.api.users.login.auth import get_user_info
-from server.mongoDB import GameMongo, UserMongo
+from domain.server.api.users.login.auth import get_user_info
+from domain.mongoDB import GameMongo, UserMongo
 
 
 class UnjoinGame(tornado.web.RequestHandler):

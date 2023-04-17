@@ -1,6 +1,6 @@
 import pickle
 
-from server.mongoDB import GameMongo
+from domain.mongoDB import GameMongo
 
 if __name__ == '__main__':
     uuid = "4664cb345db84860956c97d4d36d5416"
