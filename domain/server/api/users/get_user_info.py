@@ -1,7 +1,7 @@
 from tornado.web import RequestHandler
 
 from server.api.users.login.auth import get_user_info
-from server.mongoDB import GameMongo
+from domain.mongoDB import GameMongo
 
 
 class GetUserInfo(RequestHandler):

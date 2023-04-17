@@ -12,6 +12,7 @@ from pathlib import Path
 abs_path = os.path.realpath(__file__)
 data_abs_path = str(Path(abs_path).parent.parent.parent) + "/data"
 
+
 def read_file(path: str):
     f = open(path, 'r')
     ret = f.read()
@@ -49,7 +50,7 @@ class Equipment(object):
 
     def get_services(self):
         return self.services
-    # конструктор
+
     def __init__(self, owner, eq_type: str, eq_color: str):
         self.max_power = 0
         self.power: int = 0

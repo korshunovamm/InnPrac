@@ -6,7 +6,7 @@ import jwt
 import tornado
 from yaml import Loader, load
 
-from server.mongoDB import UserMongo
+from domain.mongoDB import UserMongo
 
 
 class Authorization(tornado.web.RequestHandler):

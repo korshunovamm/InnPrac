@@ -1,4 +1,4 @@
-from engine.deal import PledgeBank, PledgeReq
+from domain.engine.deal import PledgeBank, PledgeReq
 
 
 def buy_logistic_service(websocket, data):

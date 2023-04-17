@@ -11,6 +11,7 @@ from pathlib import Path
 abs_path = os.path.realpath(__file__)
 data_abs_path = str(Path(abs_path).parent.parent) + "/data"
 
+
 def read_file(path: str):
     f = open(path, 'r')
     ret = f.read()

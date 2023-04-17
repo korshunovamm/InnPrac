@@ -1,7 +1,7 @@
 from tornado.web import RequestHandler
 
-from server.api.users.login.auth import get_user_info
-from server.mongoDB import GameMongo, UserMongo
+from domain.server.api.users.login.auth import get_user_info
+from domain.mongoDB import GameMongo, UserMongo
 
 
 def delete_user_from_game(game, user_info):

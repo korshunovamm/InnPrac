@@ -1,11 +1,8 @@
-import json
-import os
-
 import tornado.web
 
-from engine.game import Game
-from server.api.users.login.auth import get_user_info
-from server.mongoDB import GameMongo
+from domain.engine.game import Game
+from domain.server.api.users.login.auth import get_user_info
+from domain.mongoDB import GameMongo
 
 
 class NewGame(tornado.web.RequestHandler):

@@ -1,7 +1,7 @@
 from tornado.web import RequestHandler
 from yaml import load, Loader
 
-from server.mongoDB import UserMongo
+from domain.mongoDB import UserMongo
 
 settings = load(open('configs/api.yaml'), Loader=Loader)
 

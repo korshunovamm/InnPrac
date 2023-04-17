@@ -2,7 +2,7 @@ import jwt
 import tornado
 from yaml import Loader, load
 
-from server.mongoDB import UserMongo, GameMongo
+from domain.mongoDB import UserMongo, GameMongo
 
 
 class JoinGame(tornado.web.RequestHandler):
