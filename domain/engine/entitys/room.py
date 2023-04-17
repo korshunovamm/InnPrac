@@ -1,7 +1,7 @@
 import copy
 from uuid import uuid4
 
-from engine.entitys.equipment import Equipment
+from domain.engine.entitys.equipment import Equipment
 
 
 class Room:

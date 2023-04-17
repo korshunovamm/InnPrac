@@ -1,6 +1,6 @@
 from tornado.web import RequestHandler
 
-from server.api.users.login.auth import get_user_info
+from domain.server.api.users.login.auth import get_user_info
 from domain.mongoDB import GameMongo
 
 

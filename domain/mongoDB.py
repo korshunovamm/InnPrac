@@ -1,10 +1,10 @@
-import json
 import pickle
 
 from pymongo import MongoClient
 from yaml import load, Loader
 
-data = load(open('configs/db.yaml'), Loader=Loader)
+
+data = load(open('../configs/db.yaml'), Loader=Loader)
 
 
 class UserMongo:

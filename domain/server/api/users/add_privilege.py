@@ -3,7 +3,7 @@ from yaml import load, Loader
 
 from domain.mongoDB import UserMongo
 
-settings = load(open('configs/api.yaml'), Loader=Loader)
+settings = load(open('../configs/api.yaml'), Loader=Loader)
 
 
 class AddPrivilege(RequestHandler):

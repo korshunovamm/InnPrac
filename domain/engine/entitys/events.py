@@ -3,11 +3,12 @@ import json
 import os
 import random
 from pathlib import Path
+from domain.engine.entitys.order import Order
+
 
 abs_path = os.path.realpath(__file__)
-data_abs_path = str(Path(abs_path).parent.parent.parent) + "/data"
+data_abs_path = str(Path(abs_path).parent.parent.parent.parent) + "/data"
 
-from engine.entitys.order import Order
 
 class Event:  # Event class
     def generate_dict(self):
