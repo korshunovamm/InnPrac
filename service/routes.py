@@ -1,14 +1,14 @@
-from server.api.websockets.connect_game import ConnectToGame
-from server.api.websockets.delete_user import DeleteUserFromGame
-from server.api.websockets.get_game_from_archive import GetGameFromArchive
-from server.api.websockets.go_to_next_stage import GoToNextStage
-from server.api.websockets.new_game import NewGame
-from server.api.users.add_privilege import AddPrivilege
-from server.api.users.get_user_info import GetUserInfo
-from server.api.users.join_game import JoinGame
-from server.api.users.login.auth import Authorization
-from server.api.users.login.register import Register
-from server.api.websockets.start_game import StartGame
+from controllers.server.api.websockets.connect_game import ConnectToGame
+from controllers.server.api.websockets.delete_user import DeleteUserFromGame
+from controllers.server.api.websockets.get_game_from_archive import GetGameFromArchive
+from controllers.server.api.websockets.go_to_next_stage import GoToNextStage
+from controllers.server.api.websockets.new_game import NewGame
+from domain.server.api.users.add_privilege import AddPrivilege
+from domain.server.api.users.get_user_info import GetUserInfo
+from domain.server.api.users.join_game import JoinGame
+from domain.server.api.users.login.auth import Authorization
+from domain.server.api.users.login.register import Register
+from controllers.server.api.websockets.start_game import StartGame
 
 
 def setup_routers(app):

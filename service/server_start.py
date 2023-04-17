@@ -5,7 +5,7 @@ import tornado.web
 import yaml
 
 
-from server.routes import setup_routers
+from service.routes import setup_routers
 
 try:
     from yaml import CLoader as Loader
@@ -14,7 +14,7 @@ except ImportError:
 
 
 async def main():
-    port = yaml.load(open("configs/api.yaml", "r"), Loader=Loader)['port']
+    port = yaml.load(open("../configs/api.yaml", "r"), Loader=Loader)['port']
     app = tornado.web.Application()
     setup_routers(app)
     app.listen(port)
