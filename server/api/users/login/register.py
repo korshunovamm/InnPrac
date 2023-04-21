@@ -7,13 +7,16 @@ import tornado.web
 from yaml import Loader, load
 
 from server.mongoDB import UserMongo
+from server.set_default_headers import set_default_headers
 
 
 class Register(tornado.web.RequestHandler):
     async def post(self):
         if not self.get_cookie("user"):
             if "login" in self.request.body_arguments and "password" in self.request.body_arguments:
-                if re.compile("[a-zA-Z0-9]+$").match(self.request.body_arguments["login"][0].decode('utf-8')) and re.compile("[a-zA-Z0-9]+$").match(self.request.body_arguments["password"][0].decode('utf-8')):
+                if re.compile("[a-zA-Z0-9]+$").match(
+                        self.request.body_arguments["login"][0].decode('utf-8')) and re.compile("[a-zA-Z0-9]+$").match(
+                    self.request.body_arguments["password"][0].decode('utf-8')):
                     data = self.request.body_arguments
                     config = load(open('configs/api.yaml'), Loader=Loader)
                     if UserMongo.get_user(data['login'][0].decode('utf-8')):
@@ -36,3 +39,6 @@ class Register(tornado.web.RequestHandler):
         else:
             self.write({'status': 'error', 'message': 'User already authorized'})
             self.set_status(200)
+
+    def set_default_headers(self):
+        set_default_headers(self)

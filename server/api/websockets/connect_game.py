@@ -6,6 +6,7 @@ from server.api.websockets.actions import player
 from server.api.websockets.actions.entitys import room, equipment, tradeReq
 from server.api.users.login.auth import get_user_info
 from server.mongoDB import GameMongo
+from server.set_default_headers import set_default_headers
 
 connections = {}
 
@@ -190,3 +191,6 @@ class ConnectToGame(websocket.WebSocketHandler):
                 if i.pl_uuid != pl_uuid:
                     i.game = game
                     i.write_message({"type": "update", "game": GameMongo.get_game(game_uuid).generate_dict()})
+
+    def set_default_headers(self):
+        set_default_headers(self)

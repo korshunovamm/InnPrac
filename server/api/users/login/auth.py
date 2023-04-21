@@ -7,6 +7,7 @@ import tornado
 from yaml import Loader, load
 
 from server.mongoDB import UserMongo
+from server.set_default_headers import set_default_headers
 
 
 class Authorization(tornado.web.RequestHandler):
@@ -44,6 +45,9 @@ class Authorization(tornado.web.RequestHandler):
             self.redirect("/")
         else:
             self.write("Когда нибудь тут будет страница логина")
+
+    def set_default_headers(self):
+        set_default_headers(self)
 
 
 def get_user_info(jwt_text):

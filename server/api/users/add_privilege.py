@@ -2,6 +2,7 @@ from tornado.web import RequestHandler
 from yaml import load, Loader
 
 from server.mongoDB import UserMongo
+from server.set_default_headers import set_default_headers
 
 settings = load(open('configs/api.yaml'), Loader=Loader)
 
@@ -25,4 +26,5 @@ class AddPrivilege(RequestHandler):
             self.write({"status": "error", "message": "access denied"})
             self.set_status(403)
 
-
+    def set_default_headers(self):
+        set_default_headers(self)

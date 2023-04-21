@@ -5,6 +5,7 @@ from tornado.web import RequestHandler
 
 from server.api.users.login.auth import get_user_info
 from server.mongoDB import GameMongo
+from server.set_default_headers import set_default_headers
 
 
 class StartGame(RequestHandler):
@@ -23,8 +24,9 @@ class StartGame(RequestHandler):
                                     os.makedirs("archive/")
                                 if not os.path.exists("archive/" + ga.uuid):
                                     os.makedirs("archive/" + ga.uuid)
-                                f = open("archive/" + ga.get_uuid() + "/" + str(ga.month) + "_" + str(ga.stage) + ".json",
-                                         "a")
+                                f = open(
+                                    "archive/" + ga.get_uuid() + "/" + str(ga.month) + "_" + str(ga.stage) + ".json",
+                                    "a")
                                 f.write(json.dumps(ga.generate_dict()))
                                 f.close()
                                 GameMongo.update_game(ga)
@@ -48,3 +50,6 @@ class StartGame(RequestHandler):
                 self.set_status(400)
         else:
             self.redirect("/login?error=invalid_login")
+
+    def set_default_headers(self):
+        set_default_headers(self)

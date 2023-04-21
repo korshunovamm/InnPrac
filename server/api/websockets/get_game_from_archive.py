@@ -3,6 +3,8 @@ import os
 
 from tornado.web import RequestHandler
 
+from server.set_default_headers import set_default_headers
+
 
 class GetGameFromArchive(RequestHandler):
     def get(self):
@@ -38,3 +40,5 @@ class GetGameFromArchive(RequestHandler):
             self.write(dict(result="error", message="Bad request"))
             self.set_status(400)
 
+    def set_default_headers(self):
+        set_default_headers(self)

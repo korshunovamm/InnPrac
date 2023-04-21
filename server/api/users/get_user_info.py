@@ -2,6 +2,7 @@ from tornado.web import RequestHandler
 
 from server.api.users.login.auth import get_user_info
 from server.mongoDB import GameMongo
+from server.set_default_headers import set_default_headers
 
 
 class GetUserInfo(RequestHandler):
@@ -27,3 +28,6 @@ class GetUserInfo(RequestHandler):
         else:
             self.redirect("/login?redirect=" + self.request.path)
             self.set_status(401)
+
+    def set_default_headers(self):
+        set_default_headers(self)

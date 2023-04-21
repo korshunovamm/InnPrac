@@ -6,6 +6,7 @@ import tornado.web
 from engine.game import Game
 from server.api.users.login.auth import get_user_info
 from server.mongoDB import GameMongo
+from server.set_default_headers import set_default_headers
 
 
 class NewGame(tornado.web.RequestHandler):
@@ -35,3 +36,5 @@ class NewGame(tornado.web.RequestHandler):
         else:
             self.redirect("/login?error=not_logged_in")
 
+    def set_default_headers(self):
+        set_default_headers(self)
