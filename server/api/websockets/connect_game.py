@@ -191,6 +191,3 @@ class ConnectToGame(websocket.WebSocketHandler):
                 if i.pl_uuid != pl_uuid:
                     i.game = game
                     i.write_message({"type": "update", "game": GameMongo.get_game(game_uuid).generate_dict()})
-
-    def set_default_headers(self):
-        set_default_headers(self)

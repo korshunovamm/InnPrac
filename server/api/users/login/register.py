@@ -7,7 +7,6 @@ import tornado.web
 from yaml import Loader, load
 
 from server.mongoDB import UserMongo
-from server.set_default_headers import set_default_headers
 
 
 class Register(tornado.web.RequestHandler):

@@ -5,7 +5,6 @@ from tornado.web import RequestHandler
 
 from server.api.users.login.auth import get_user_info
 from server.mongoDB import GameMongo
-from server.set_default_headers import set_default_headers
 
 
 class StartGame(RequestHandler):
@@ -50,6 +49,3 @@ class StartGame(RequestHandler):
                 self.set_status(400)
         else:
             self.redirect("/login?error=invalid_login")
-
-    def set_default_headers(self):
-        set_default_headers(self)

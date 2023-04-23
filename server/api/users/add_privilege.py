@@ -2,7 +2,6 @@ from tornado.web import RequestHandler
 from yaml import load, Loader
 
 from server.mongoDB import UserMongo
-from server.set_default_headers import set_default_headers
 
 settings = load(open('configs/api.yaml'), Loader=Loader)
 
