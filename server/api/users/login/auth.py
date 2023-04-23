@@ -46,9 +46,6 @@ class Authorization(tornado.web.RequestHandler):
         else:
             self.write("Когда нибудь тут будет страница логина")
 
-    def set_default_headers(self):
-        set_default_headers(self)
-
 
 def get_user_info(jwt_text):
     try:

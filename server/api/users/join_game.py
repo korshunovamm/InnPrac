@@ -3,7 +3,6 @@ import tornado
 from yaml import Loader, load
 
 from server.mongoDB import UserMongo, GameMongo
-from server.set_default_headers import set_default_headers
 
 
 class JoinGame(tornado.web.RequestHandler):
@@ -50,6 +49,3 @@ class JoinGame(tornado.web.RequestHandler):
         # # Add the user to the game
         # manage_game[data['game']].append(data['user'])
         # return {'message': 'User joined game'}, 200
-
-    def set_default_headers(self):
-        set_default_headers(self)

@@ -25,6 +25,3 @@ class AddPrivilege(RequestHandler):
         else:
             self.write({"status": "error", "message": "access denied"})
             self.set_status(403)
-
-    def set_default_headers(self):
-        set_default_headers(self)

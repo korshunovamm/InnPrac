@@ -39,6 +39,3 @@ class Register(tornado.web.RequestHandler):
         else:
             self.write({'status': 'error', 'message': 'User already authorized'})
             self.set_status(200)
-
-    def set_default_headers(self):
-        set_default_headers(self)
