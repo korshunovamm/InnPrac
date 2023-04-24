@@ -1,9 +1,5 @@
 import unittest
-import sys
-
-sys.path.append('../')
-
-from engine.game import Game
+from domain.engine.game import Game
 
 
 class Buy(unittest.TestCase):

@@ -2,11 +2,8 @@ import random
 import unittest
 from math import inf
 import sys
-
-sys.path.append('../')
-
-from engine.entitys.room import Room
-from engine.game import Game
+from domain.engine.entitys.room import Room
+from domain.engine.game import Game
 
 
 class Buy(unittest.TestCase):

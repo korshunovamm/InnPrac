@@ -1,8 +1,9 @@
 import unittest
 import sys
+from domain.engine.game import Game
 
-sys.path.append('../')
-from engine.game import Game
+sys.path.append('../../')
+
 
 class StaticBaseParams(unittest.TestCase):
     game = Game("test")

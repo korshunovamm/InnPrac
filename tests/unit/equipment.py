@@ -1,8 +1,9 @@
 import unittest
 import sys
 
-sys.path.append('../')
-from engine.game import Game
+from domain.engine.game import Game
+
+sys.path.append('../../../')
 
 
 class Buy(unittest.TestCase):
@@ -99,7 +100,7 @@ class BuyReagents(unittest.TestCase):
         game.buy_reagents(pl_uuid, eq_uuid, 3)
         pass
         self.assertEqual(3, game.labs[pl_uuid].rooms[ro_uuid].get_equipment().get_reagents())
-        self.assertEqual(120 - 10 - 60 - 4*(1 + 2) - 3 * 5, game.labs[pl_uuid].money)
+        self.assertEqual(120 - 10 - 60 - 4 * (1 + 2) - 3 * 5, game.labs[pl_uuid].money)
 
     def test_buy_reagents_to_much(self):
         game = Game("test")

@@ -1,9 +1,11 @@
+import os
 from tornado.web import RequestHandler
 from yaml import load, Loader
 
 from domain.mongoDB import UserMongo
-
-settings = load(open('../configs/api.yaml'), Loader=Loader)
+file_abspath = os.path.abspath(__file__)
+file_dname = os.path.dirname(file_abspath)
+settings = load(open(file_dname + '/../../../../configs/db.yaml'), Loader=Loader)
 
 
 class AddPrivilege(RequestHandler):
