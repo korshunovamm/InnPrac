@@ -10,7 +10,7 @@ data = load(open('configs/db.yaml'), Loader=Loader)
 class UserMongo:
     database = MongoClient(
         "mongodb://" + data["login"] + ":" + data["password"] + "@" + data["host"] + ":" + str(data["port"]))[
-        data["database"] + "?authMechanism=DEFAULT&authSource=" + data["database"]]
+        data["database"]]
 
     @staticmethod
     def get_collection():

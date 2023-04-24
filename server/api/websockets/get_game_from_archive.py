@@ -37,4 +37,3 @@ class GetGameFromArchive(RequestHandler):
         else:
             self.write(dict(result="error", message="Bad request"))
             self.set_status(400)
-

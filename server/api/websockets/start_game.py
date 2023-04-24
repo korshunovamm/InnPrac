@@ -23,8 +23,9 @@ class StartGame(RequestHandler):
                                     os.makedirs("archive/")
                                 if not os.path.exists("archive/" + ga.uuid):
                                     os.makedirs("archive/" + ga.uuid)
-                                f = open("archive/" + ga.get_uuid() + "/" + str(ga.month) + "_" + str(ga.stage) + ".json",
-                                         "a")
+                                f = open(
+                                    "archive/" + ga.get_uuid() + "/" + str(ga.month) + "_" + str(ga.stage) + ".json",
+                                    "a")
                                 f.write(json.dumps(ga.generate_dict()))
                                 f.close()
                                 GameMongo.update_game(ga)

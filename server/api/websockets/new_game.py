@@ -1,6 +1,3 @@
-import json
-import os
-
 import tornado.web
 
 from engine.game import Game
@@ -34,4 +31,3 @@ class NewGame(tornado.web.RequestHandler):
                 self.redirect("/login?error=invalid_login")
         else:
             self.redirect("/login?error=not_logged_in")
-
