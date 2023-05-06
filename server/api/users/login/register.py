@@ -15,7 +15,7 @@ class Register(tornado.web.RequestHandler):
             if "login" in self.request.body_arguments and "password" in self.request.body_arguments:
                 if re.compile("[a-zA-Z0-9]+$").match(
                         self.request.body_arguments["login"][0].decode('utf-8')) and re.compile("[a-zA-Z0-9]+$").match(
-                    self.request.body_arguments["password"][0].decode('utf-8')):
+                        self.request.body_arguments["password"][0].decode('utf-8')):
                     data = self.request.body_arguments
                     config = load(open('configs/api.yaml'), Loader=Loader)
                     if UserMongo.get_user(data['login'][0].decode('utf-8')):
