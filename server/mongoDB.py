@@ -108,6 +108,41 @@ class GameMongo:
             return None
 
     @staticmethod
+    def archive_game(game):
+        if GameMongo.get_game(game.get_uuid()):
+            GameMongo.get_collection().insert_one({
+                "game": json.dumps(game.generate_dict()),
+                "month": game.month,
+                "stage": game.stage,
+                "archive": "true",
+                "game_uuid": "archive_" + game.get_uuid()
+            })
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def get_archive_game_of_period(start, end):
+        if start > end:
+            start, end = end, start
+        start = int(start)
+        end = int(end)
+        result = []
+        for i in range(start, end):
+            game = GameMongo().get_collection().find_one({"$and": [{"archive": "true"}, {"month": i}]})
+            if game:
+                result.append(game)
+        return result
+
+    @staticmethod
+    def get_archive_game(uuid):
+        game = GameMongo.get_collection().find_one({"game_uuid": "archive_" + uuid})
+        if game is not None:
+            return pickle.loads(game["game"])
+        else:
+            return None
+
+    @staticmethod
     def delete_game(uuid: str):
         GameMongo.get_collection().delete_one({"game_uuid": uuid})
 
