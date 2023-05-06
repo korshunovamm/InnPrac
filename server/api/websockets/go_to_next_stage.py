@@ -26,14 +26,7 @@ class GoToNextStage(RequestHandler):
                             game.transition_to_stage_2()
                         else:
                             game.transition_to_stage_1()
-                        if not os.path.exists("archive/"):
-                            os.makedirs("archive/")
-                        if not os.path.exists("archive/" + game.uuid):
-                            os.makedirs("archive/" + game.uuid)
-                        f = open("archive/" + game.get_uuid() + "/" + str(game.month) + "_" + str(game.stage) + ".json",
-                                 "a")
-                        f.write(json.dumps(game.generate_dict()))
-                        f.close()
+                        GameMongo.archive_game(game)
                         GameMongo.update_game(game)
                         self.write(dict(result="ok", message="Game updated"))
                     else:

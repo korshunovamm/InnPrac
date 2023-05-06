@@ -19,15 +19,7 @@ class StartGame(RequestHandler):
                         if ga:
                             if ga.get_status() == 'waiting' and ga.get_players_count() > 1:
                                 ga.set_status("running")
-                                if not os.path.exists("archive/"):
-                                    os.makedirs("archive/")
-                                if not os.path.exists("archive/" + ga.uuid):
-                                    os.makedirs("archive/" + ga.uuid)
-                                f = open(
-                                    "archive/" + ga.get_uuid() + "/" + str(ga.month) + "_" + str(ga.stage) + ".json",
-                                    "a")
-                                f.write(json.dumps(ga.generate_dict()))
-                                f.close()
+                                GameMongo.archive_game(ga)
                                 GameMongo.update_game(ga)
                                 self.write({"result": "ok", "message": "Started game"})
                                 self.set_status(200)
